@@ -1,0 +1,9 @@
+{
+    "path" : "~/cron/air.utah.edu",
+    "sortOrder" : [
+        {
+            "ascending" : true,
+            "columnIndex" : 2
+        }
+    ]
+}

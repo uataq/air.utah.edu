@@ -1,0 +1,8 @@
+name: "uataq-home"
+include: status.html
+output:
+  html_document:
+    theme: default
+    css: styles.css
+    includes:
+      in_header: header.html

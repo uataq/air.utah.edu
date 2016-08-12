@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+
+<title></title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/htmlwidgets-0.7/htmlwidgets.js"></script>
+<link href="site_libs/leaflet-0.7.3/leaflet.css" rel="stylesheet" />
+<script src="site_libs/leaflet-0.7.3/leaflet.js"></script>
+<link href="site_libs/leafletfix-1.0.0/leafletfix.css" rel="stylesheet" />
+<script src="site_libs/leaflet-binding-1.0.1/leaflet.js"></script>
+<script src="https://use.fontawesome.com/4e14d22100.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<link rel="stylesheet"
+      href="site_libs/highlight/default.css"
+      type="text/css" />
+<script src="site_libs/highlight/highlight.js"></script>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+<link rel="stylesheet" href="styles.css" type="text/css" />
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+<!-- Ben Fasoli -->
+<!-- Shared navbar for air.utah.edu -->
+<nav class="navbar navbar-default navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#airnav">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">
+        <div class="mobileHide">
+          <img src="http://air.utah.edu/~benfasoli/img/utelogo.png" style="height: 17px;">
+          Atmospheric Trace gas &amp; Air Quality
+        </div>
+        <div class="mobileShow">
+          <img src="http://air.utah.edu/~benfasoli/img/utelogo.png" style="height: 17px;">
+          ATAQ
+        </div>
+      </a>
+    </div><!--/.navbar-header-->
+    <div id="airnav" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+            Maps <span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu" role="menu">
+            <li>
+              <a href="index.html">Carbon Dioxide</a>
+            </li>
+            <li>
+              <a href="map_ch4.html">Methane</a>
+            </li>
+            <li>
+              <a href="map_pm.html">Particulate Matter</a>
+            </li>
+            <li>
+              <a href="map_o3.html">Ozone</a>
+            </li>
+          </ul>
+        </li>
+        <li>
+          <a href="status.html">Status</a>
+        </li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+            Data <span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu" role="menu">
+            <li>
+              <a href="http://air.utah.edu/s/view/gasview/">
+                <i class="fa fa-line-chart fa-fw" aria-hidden="true"></i>
+                Interactive time-series
+              </a>
+            </li>
+            <li>
+              <a href="http://air.utah.edu/s/view/nerdmobile/">
+                <i class="fa fa-car fa-fw" aria-hidden="true"></i>
+                Nerdmobile mobile lab
+              </a>
+            </li>
+            <li>
+              <a href="http://air.utah.edu/s/view/trax/">
+                <i class="fa fa-train fa-fw" aria-hidden="true"></i>
+                TRAX light-rail
+              </a>
+            </li>
+          </ul>
+        </li>
+        <li>
+          <a href="about.html">About</a>
+        </li>
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+          <li>
+            <a href="/s/auth/">
+              <i class="fa fa-lock" aria-hidden="true"></i>
+              Sign in
+            </a>
+          </li>
+        </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</nav>
+
+<div class="fluid-row" id="header">
+
+
+
+
+</div>
+
+
+<div class="map">
+<div id="htmlwidget-9fc3d8cd8403d2aded10" style="width:100%;height:100%;" class="leaflet html-widget"></div>
+<script type="application/json" data-for="htmlwidget-9fc3d8cd8403d2aded10">{"x":{"calls":[{"method":"addTiles","args":["http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png",null,null,{"minZoom":0,"maxZoom":18,"maxNativeZoom":null,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"continuousWorld":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false,"attribution":"UATAQ, Ben Fasoli. Basemap from CartoDB"}]},{"method":"addCircleMarkers","args":[[40.538497,40.208731,40.560644,40.506808,40.143711,41.761353,40.294169,40.794386,40.739906,40.480978,40.766189],[-112.069528,-110.8403,-111.645278,-111.403636,-109.4672,-111.822739,-110.009,-111.931925,-111.857831,-111.837047,-111.847672],10,null,null,{"lineCap":null,"lineJoin":null,"clickable":true,"pointerEvents":null,"className":"","stroke":true,"color":["#808080","#808080","#808080","#808080","#808080","#808080","#808080","#808080","#808080","#808080","#808080"],"weight":2,"opacity":0.5,"fill":true,"fillColor":["#808080","#808080","#808080","#808080","#808080","#808080","#808080","#808080","#808080","#808080","#808080"],"fillOpacity":0.5,"dashArray":null},null,null,["<b>Daybreak\u003c/b><br>Particulate Matter (PM2.5) :<b> Unknown \u003c/b> ug/m^3<br>Last updated:   2016-08-12 11:31 MDT<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/gasview/?site=dbk\">\n  <button type=\"button\" class=\"btn btn-danger btn-block\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>Fruitland\u003c/b><br>Particulate Matter (PM2.5) :<b> Unknown \u003c/b> ug/m^3<br>Last updated:   2016-08-12 11:45 MDT<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/gasview/?site=fru\">\n  <button type=\"button\" class=\"btn btn-danger btn-block\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>Hidden Peak\u003c/b><br>Particulate Matter (PM2.5) :<b> Unknown \u003c/b> ug/m^3<br>Last updated:   2016-08-12 11:45 MDT<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/gasview/?site=hdp\">\n  <button type=\"button\" class=\"btn btn-danger btn-block\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>Heber\u003c/b><br>Particulate Matter (PM2.5) :<b> Unknown \u003c/b> ug/m^3<br>Last updated:   2016-08-12 11:31 MDT<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/gasview/?site=heb\">\n  <button type=\"button\" class=\"btn btn-danger btn-block\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>Horsepool\u003c/b><br>Particulate Matter (PM2.5) :<b> Unknown \u003c/b> ug/m^3<br>Last updated:   2016-08-12 11:45 MDT<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/gasview/?site=hpl\">\n  <button type=\"button\" class=\"btn btn-danger btn-block\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>Logan\u003c/b><br>Particulate Matter (PM2.5) :<b> Unknown \u003c/b> ug/m^3<br>Last updated:   2016-08-12 11:45 MDT<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/gasview/?site=lgn\">\n  <button type=\"button\" class=\"btn btn-danger btn-block\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>Roosevelt\u003c/b><br>Particulate Matter (PM2.5) :<b> Unknown \u003c/b> ug/m^3<br>Last updated:   2016-08-12 11:45 MDT<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/gasview/?site=roo\">\n  <button type=\"button\" class=\"btn btn-danger btn-block\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>Rose Park\u003c/b><br>Particulate Matter (PM2.5) :<b> Unknown \u003c/b> ug/m^3<br>Last updated:   2016-08-12 11:45 MDT<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/gasview/?site=rpk\">\n  <button type=\"button\" class=\"btn btn-danger btn-block\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>Sugarhouse\u003c/b><br>Particulate Matter (PM2.5) :<b> Unknown \u003c/b> ug/m^3<br>Last updated:   2016-08-11 10:32 MDT<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/gasview/?site=sug\">\n  <button type=\"button\" class=\"btn btn-danger btn-block\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>Suncrest\u003c/b><br>Particulate Matter (PM2.5) :<b> Unknown \u003c/b> ug/m^3<br>Last updated:   2016-08-12 11:45 MDT<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/gasview/?site=sun\">\n  <button type=\"button\" class=\"btn btn-danger btn-block\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>University of Utah\u003c/b><br>Particulate Matter (PM2.5) :<b> Unknown \u003c/b> ug/m^3<br>Last updated:   2016-08-12 11:45 MDT<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/gasview/?site=wbb\">\n  <button type=\"button\" class=\"btn btn-danger btn-block\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>"]]},{"method":"addLegend","args":[{"colors":["#FF0000 , #FF6900 9.09090909090909%, #FFC600 27.2727272727273%, #D5FF00 45.4545454545455%, #32FF54 63.6363636363636%, #36EBFF 81.8181818181818%, #0000FF 100%, #0000FF "],"labels":["50","40","30","20","10","0"],"na_color":null,"na_label":"NA","opacity":0.7,"position":"bottomright","type":"numeric","title":"(ug/m^3)","extra":{"p_1":0.0909090909090909,"p_n":1},"layerId":null,"className":"info legend"}]},{"method":"addCircleMarkers","args":[[40.62755,40.62793,40.6278,40.62782,40.62773,40.62768,40.62763,40.62753,40.62742,40.62752,40.62807,40.6279,40.62773,40.62763,40.62757,40.62753,40.62757,40.6276,40.6276,40.62755,40.62743,40.62763,40.6278,40.62785,40.62783,40.62782,40.62785,40.62752,40.62757,40.62788,40.62768,40.62772,40.62778,40.62783,40.62785,40.62777,40.62775,40.62777,40.62787,40.62778,40.62782,40.62802,40.62813,40.62803,40.62795,40.62782,40.62792,40.6277,40.62778,40.62782,40.62757,40.62852,40.62808,40.62788,40.62788,40.62798,40.62825,40.62827,40.62808,40.62807,40.62778,40.62777,40.62782,40.62775,40.62785,40.62955,40.629,40.62767,40.62772],[-111.90503,-111.90536,-111.90527,-111.9053,-111.90535,-111.90518,-111.90491,-111.90517,-111.90552,-111.90525,-111.9033,-111.90392,-111.90479,-111.9048,-111.90493,-111.90498,-111.90498,-111.90482,-111.90488,-111.90488,-111.9049,-111.90493,-111.90493,-111.90511,-111.90514,-111.90517,-111.90522,-111.90503,-111.90501,-111.90517,-111.9051,-111.90517,-111.90493,-111.90511,-111.9052,-111.9051,-111.9051,-111.90511,-111.90508,-111.90533,-111.90535,-111.90543,-111.90552,-111.9054,-111.90545,-111.90517,-111.90527,-111.90522,-111.9052,-111.90517,-111.90503,-111.90528,-111.90503,-111.905,-111.90498,-111.90524,-111.90507,-111.90505,-111.90505,-111.9051,-111.90493,-111.90497,-111.90524,-111.90495,-111.90475,-111.90555,-111.90543,-111.90538,-111.9053],2,null,null,{"lineCap":null,"lineJoin":null,"clickable":true,"pointerEvents":null,"className":"","stroke":true,"color":["#4A5FFF","#4A5FFF","#4A5FFF","#4A5FFF","#4A5FFF","#3F49FF","#4A5FFF","#4A5FFF","#4A5FFF","#4A5FFF","#4A5FFF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#2D2FFF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#2D2FFF","#3F49FF","#3F49FF","#2D2FFF","#2D2FFF","#2D2FFF","#2D2FFF","#3F49FF","#2D2FFF","#3F49FF","#2D2FFF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#2D2FFF"],"weight":2,"opacity":0.3,"fill":true,"fillColor":["#4A5FFF","#4A5FFF","#4A5FFF","#4A5FFF","#4A5FFF","#3F49FF","#4A5FFF","#4A5FFF","#4A5FFF","#4A5FFF","#4A5FFF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#2D2FFF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#2D2FFF","#3F49FF","#3F49FF","#2D2FFF","#2D2FFF","#2D2FFF","#2D2FFF","#3F49FF","#2D2FFF","#3F49FF","#2D2FFF","#3F49FF","#3F49FF","#3F49FF","#3F49FF","#2D2FFF"],"fillOpacity":0.3,"dashArray":null},null,null,["<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 3 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:13 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 3 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:16 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 3 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:17 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 3 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:18 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 3 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:19 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:20 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 3 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:21 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 3 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:22 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 3 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:23 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 3 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:24 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 3 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:25 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:26 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:27 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:28 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:29 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:30 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:31 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:32 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:33 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:34 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:36 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:37 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:38 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:39 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:40 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:41 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:42 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:43 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:44 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:46 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:47 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:48 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:49 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:50 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:51 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:52 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:53 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:54 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:55 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:56 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:57 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:58 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 16:59 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 17:00 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 17:01 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 17:02 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 1 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 17:06 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 17:09 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 17:10 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 17:11 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 17:12 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 17:16 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 17:17 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 1 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 17:18 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 17:19 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 17:20 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 1 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 17:21 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 1 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 17:22 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 1 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 17:23 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 1 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 17:24 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 17:25 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 1 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 17:26 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 17:28 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 1 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 17:30 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 17:31 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 17:35 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 17:36 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 2 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 17:39 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>","<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 1 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 17:40 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>"]]},{"method":"addCircleMarkers","args":[40.62772,-111.9053,5,null,null,{"lineCap":null,"lineJoin":null,"clickable":true,"pointerEvents":null,"className":"","stroke":true,"color":"black","weight":2,"opacity":0.8,"fill":true,"fillColor":"#2D2FFF","fillOpacity":0.8,"dashArray":null},null,null,"<b>TRAX 1\u003c/b><br>Particulate Matter (PM2.5) :<b> 1 \u003c/b> ug/m^3<br>Last updated:   2016-08-12 17:40 UTC<br><a target=\"_blank\" href=\"http://air.utah.edu/s/view/trax/\">\n  <button type=\"button\" class=\"btn action-button btn-large btn-danger\"><i class=\"fa fa-line-chart\">\u003c/i>Go to the data!\u003c/button>\n\u003c/a>"]}],"fitBounds":[39.943711,-112.269528,41.961353,-109.2672],"limits":{"lat":[40.143711,41.761353],"lng":[-112.069528,-109.4672]}},"evals":[],"jsHooks":[]}</script>
+</div>
+<div class="mobileHide" style="position:fixed; left: 5px; bottom: 5px; text-align: center;">
+<p><a href="http://lair.utah.edu"> <img src="http://air.utah.edu/~benfasoli/img/LAIR_logo.png" style="width: 300px;"> </a> <a href="http://sustainability.utah.edu"> <img src="http://air.utah.edu/~benfasoli/img/SCIF_logo.png" style="width: 150px;"> </a></p>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+$(document).ready(function () {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

@@ -1,8 +1,9 @@
 name: "uataq-home"
-include: status.html
+include: ["status.html"]
+exclude: ["data"]
 output:
   html_document:
     theme: default
     css: styles.css
     includes:
-      in_header: header.html
+      in_header: _header.html

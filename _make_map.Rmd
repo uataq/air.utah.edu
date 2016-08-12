@@ -64,6 +64,9 @@ raw <- readRDS('/srv/shiny-server/map/shared/airmap.rds')
 dat <- raw$fixed
 dat[dat$Time_UTC < Sys.time() - 3800 * 1.5, short_species[[tracer]]] <- NA
 
+last_upd <- max(dat$Time_UTC, na.rm = T) %>%
+  strftime('%Y-%m-%d %H:%M %Z')
+
 # Generate popups --------------------------------------------------------------
 pup.times <- strftime(as.POSIXct(dat$Time_UTC, origin='1970-01-01'), 
                       '%Y-%m-%d %H:%M %Z')
@@ -158,11 +161,15 @@ leaf
 ```
 </div>
 
+<div class="mobileHide" style="position:fixed; top: 55px; right: 5px; text-align: left;">
+  Last updated: `r last_upd`
+</div>
+
 <div class="mobileHide" style="position:fixed; left: 5px; bottom: 5px; text-align: center;">
-<a href="http://lair.utah.edu">
-<img src="http://air.utah.edu/~benfasoli/img/LAIR_logo.png" style="width: 300px;">
-</a>
-<a href="http://sustainability.utah.edu">
-<img src="http://air.utah.edu/~benfasoli/img/SCIF_logo.png" style="width: 150px;">
-</a>
+  <a href="http://lair.utah.edu">
+    <img src="http://air.utah.edu/~benfasoli/img/LAIR_logo.png" style="width: 300px;">
+  </a>
+  <a href="http://sustainability.utah.edu">
+    <img src="http://air.utah.edu/~benfasoli/img/SCIF_logo.png" style="width: 150px;">
+  </a>
 </div>

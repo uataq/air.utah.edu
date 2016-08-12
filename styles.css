@@ -10,6 +10,32 @@
   right: 0;
 }
 
+/* input group sizing */
+.input-group-addon {
+    min-width: 53px;
+    text-align: middle;
+}
+
+/* link color */
+a:link,
+a:visited,
+a:hover,
+a:active {
+  color: #c3252c;
+}
+a.leaflet-control-zoom-in,
+a.leaflet-control-zoom-out {
+  color: #000000;
+}
+
+/* last updated time well */
+div.last-upd {
+  margin-top: 0;
+  margin-right: 0;
+  margin-bottom: 0;
+  margin-left: 0;
+}
+
 /* navbar menu color on mouse hover */
 .dropdown-menu > li > a:hover,
 .dropdown-menu > li > a:focus {

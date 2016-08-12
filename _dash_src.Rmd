@@ -1,6 +1,7 @@
 ---
 title: "UATAQ Status Dashboard"
 ---
+<!-- Ben Fasoli -->
 
 Row
 --------------------------------------------------------------------------------
@@ -51,7 +52,7 @@ color <-
     'danger'
   }
 txt <- paste(signif(val, 2), 'ppm')
-valueBox(txt, color = color, icon = 'fa-area-chart')
+flexdashboard::valueBox(txt, color = color, icon = 'fa-area-chart')
 ```
 
 ### CO$_2$ Regression RMSE
@@ -66,7 +67,7 @@ color <-
     'danger'
   }
 txt <- paste(signif(val, 2), 'ppm')
-valueBox(txt, color = color, icon = 'fa-tachometer')
+flexdashboard::valueBox(txt, color = color, icon = 'fa-tachometer')
 ```
 
 ### CH$_4$ Pre-calibration Bias
@@ -81,7 +82,7 @@ color <-
     'danger'
   }
 txt <- paste(round(val), 'ppb')
-valueBox(txt, color = color, icon = 'fa-area-chart')
+flexdashboard::valueBox(txt, color = color, icon = 'fa-area-chart')
 ```
 
 ### CH$_4$ Regression RMSE
@@ -96,7 +97,7 @@ color <-
     'danger'
   }
 txt <- paste(round(val), 'ppb')
-valueBox(txt, color = color, icon = 'fa-tachometer')
+flexdashboard::valueBox(txt, color = color, icon = 'fa-tachometer')
 ```
 
 Row

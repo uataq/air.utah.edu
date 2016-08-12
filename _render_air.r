@@ -1,5 +1,6 @@
 # Ben Fasoli
 library(dplyr)
+library(flexdashboard)
 library(ggplot2)
 library(readr)
 
@@ -193,7 +194,7 @@ render_air <- function() {
   # Compile webpage --------------------------------------------------------------
   rmarkdown::render_site(encoding = 'UTF-8')
   system('rm status.html')
-  system(paste('cp -R _site/* /var/www/beta/'))
+  system(paste('cp -R _site/* /var/www/air.utah.edu/'))
 }
 
 render_air()

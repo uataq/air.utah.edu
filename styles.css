@@ -10,6 +10,12 @@
   right: 0;
 }
 
+/* tracer div spacing */
+div.tracer-left {
+  width: 40px;
+  display: inline-block;
+}
+
 /* input group sizing */
 .input-group-addon {
     min-width: 53px;

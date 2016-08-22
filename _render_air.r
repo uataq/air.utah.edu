@@ -8,13 +8,21 @@ setwd('/home/benfasoli/cron/air.utah.edu/')
 
 # Dashboard setup --------------------------------------------------------------
 sites <- dir('/projects/data') %>%
-  grep(pattern = 'trx|csp', x = ., invert = T, value = T)
+  grep(pattern = 'trx|csp|mur', x = ., invert = T, value = T)
 
 cal <- lapply(sites, function(site) {
-  df <- file.path('/projects/data', site, 'calibrated') %>%
+  paths <- file.path('/projects/data', site, 'calibrated') %>%
     dir(full.names = T) %>%
-    tail(2) %>%
-    lapply(read_csv, locale = locale(tz = 'UTC')) %>%
+    tail(2)
+  col_types <- read_lines(paths[1], n_max = 1) %>%
+    grepl('CH4d_ppm_cal', x = .) %>%
+    (function(x) {
+      if (x) return('Tddddddddddddddc')
+      else return('Tdddddddc')
+    })
+  df <- paths %>%
+    lapply(read_csv, locale = locale(tz = 'UTC'), col_types = col_types,
+           progress = F) %>%
     bind_rows
   
   if (nrow(df) < 100)
@@ -27,16 +35,18 @@ cal <- lapply(sites, function(site) {
   }
   df %>%
     mutate(site) %>%
-    filter(Time_UTC >= Sys.time() - 7 * 24 * 3600)
+    filter(Time_UTC >= Sys.time() - 7 * 24 * 3600) %>%
+    return
 }) %>%
   bind_rows()
 
 n <- 24 * 7 # Hourly resolution
 small <- cal %>%
-  mutate(rmse_co2 = uataq::run_smooth(rmse_co2, n = n),
-         rmse_ch4 = uataq::run_smooth(rmse_ch4, n = n)) %>%
+  # mutate(rmse_co2 = uataq::run_smooth(rmse_co2, n = n),
+  #        rmse_ch4 = uataq::run_smooth(rmse_ch4, n = n)) %>%
   do(.[trunc(seq(from = 1, to = nrow(.), length.out = n * length(sites))), ])%>%
-  mutate(rmse_ch4 = rmse_ch4 * 1000)
+  mutate(rmse_ch4 = rmse_ch4 * 1000) %>%
+  rename(Time_Mountain = Time_UTC)
 
 # CO2 --------------------------------------------------------------------------
 max_rmse <- 2.0
@@ -47,7 +57,7 @@ if (length(bad_sites) > 0) {
                paste0('RMSE > ', max_rmse, 'ppm: '),
                paste(bad_sites, sep = ', ', collapse = ', '))
 } else txt <- ''
-f <- ggplot(data = small, aes(x = Time_UTC, y = rmse_co2, color = site)) +
+f <- ggplot(data = small, aes(x = Time_Mountain, y = rmse_co2, color = site)) +
   geom_line() +
   xlab(NULL) +
   ylab(NULL) +
@@ -70,7 +80,7 @@ if (length(bad_sites) > 0) {
                paste0('RMSE > ', max_rmse, 'ppb: '),
                paste(bad_sites, sep = ', ', collapse = ', '))
 } else txt <- ''
-f <- ggplot(data = small, aes(x = Time_UTC, y = rmse_ch4, color = site)) +
+f <- ggplot(data = small, aes(x = Time_Mountain, y = rmse_ch4, color = site)) +
   geom_line() +
   xlab(NULL) +
   ylab(NULL) +
@@ -86,21 +96,26 @@ saveRDS(f, 'data/rmse_ch4.rds')
 # Stats ------------------------------------------------------------------------
 out <- lapply(sites, function(site) {
   # Import all parsed data
-  parsed <- '/projects/data/' %>%
-    paste0(site, '/parsed') %>%
-    dir(full.names=T) %>%
-    tail(1) %>%
-    lapply(read_csv, locale=locale(tz='UTC')) %>%
-    bind_rows() %>%
+  path <- file.path('/projects/data', site, 'parsed') %>%
+    dir(full.names = T) %>%
+    tail(1)
+  col_types <- read_lines(path, n_max = 1) %>%
+    grepl('CH4d_ppm', x = .) %>%
+    (function(x) {
+      if (x) return('Tdddddddddddddddddddddccdd')
+      else return('Tdddddddddddddddddddcddc')
+    })
+  parsed <- read_csv(path, locale=locale(tz='UTC'), col_types = col_types,
+                     progress = F) %>%
     filter(ID_co2 != -1,
            ID_co2 != -2,
            ID_co2 != -3)
   
   tmp <- parsed %>%
     filter(ID_co2 > 0)
-  if (nrow(tmp) < 10)
-    return(NULL)
-  print(site)
+  if (nrow(tmp) < 1)
+    return( data_frame(site) )
+  
   if ('CH4d_ppm' %in% colnames(tmp)) {
     tmp <- tmp %>%
       mutate(diff_co2 = abs(CO2d_ppm - ID_co2),
@@ -116,34 +131,39 @@ out <- lapply(sites, function(site) {
   # Data recovery rate ---------------------------------------------------------
   # Find elapsed time in raw data since the start of the dataset and compare to
   # the amount of time covered by 10-s calibrated measurements
-  nsec_total <- as.numeric(Sys.time()) -
-    Sys.time() %>%
-    strftime('%Y-%m-01') %>%
-    as.POSIXct %>%
-    as.numeric
-  nsec_smp <- nrow(parsed) * 10
+  nsec_smp <- parsed %>%
+    (function(x) {
+      len <- nrow(x)
+      dt = as.numeric(x$Time_UTC[2:len]) - as.numeric(x$Time_UTC[1:(len-1)])
+      # Define observations as having <100 seconds between
+      sampling <- dt < 100
+      sum(dt[sampling], na.rm = T)
+    })
   
   # CALIBRATION TESTING --------------------------------------------------------
   # UATAQ Calibration routine
   # https://github.com/benfasoli/uataq/blob/master/R/calibrate.r
   # Import all calibrated data
-  cal <- '/projects/data/' %>%
-    paste0(site, '/calibrated') %>%
-    dir(full.names=T) %>%
-    tail(1) %>%
-    lapply(read_csv, locale=locale(tz='UTC')) %>%
-    bind_rows() %>%
-    filter(n_co2 == 3)
-  
-  if (nrow(cal) < 10)
-    return(NULL)
+  path <- file.path('/projects/data', site, 'calibrated') %>%
+    dir(full.names = T) %>%
+    tail(1)
+  col_types <- read_lines(path, n_max = 1) %>%
+    grepl('CH4d_ppm', x = .) %>%
+    (function(x) {
+      if (x) return('Tddddddddddddddc')
+      else return('Tdddddddc')
+    })
+  cal <- read_csv(path, locale=locale(tz='UTC'), col_types = col_types,
+                  progress = F)
+  n_co2 <- tail(cal$n_co2, 1)
+  cal <- cal
   
   # Result output --------------------------------------------------------------
   # Output results to data_frame
   out <- data_frame(
     site,
     nsec_smp,
-    nsec_total,
+    n_co2    = n_co2,
     bias_co2 = meandiff_co2,
     rmse_co2 = mean(cal$rmse_co2, na.rm = T)
   )
@@ -154,7 +174,12 @@ out <- lapply(sites, function(site) {
   out
 })
 
-result <- bind_rows(out)
+result <- bind_rows(out) %>%
+  mutate(nsec_total = as.numeric(Sys.time()) -
+           Sys.time() %>%
+           strftime('%Y-%m-01', tz = 'UTC') %>%
+           as.POSIXct(tz = 'UTC') %>%
+           as.numeric)
 result <- bind_rows(result,
                     data_frame(
                       site = 'Total',

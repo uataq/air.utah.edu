@@ -60,7 +60,7 @@ units <- data_frame('Carbon Dioxide (CO2)'='ppm',
 
 
 # Data read --------------------------------------------------------------------
-raw <- readRDS('/srv/shiny-server/map/shared/airmap.rds')
+raw <- readRDS('data/airmap.rds')
 dat <- raw$fixed
 dat[dat$Time_UTC < Sys.time() - 3800 * 1.5, short_species[[tracer]]] <- NA
 

@@ -1,5 +1,5 @@
 name: "uataq-home"
-include: ["status.html"]
+include: ["status.html", "favicon.ico"]
 exclude: ["data"]
 output:
   html_document:

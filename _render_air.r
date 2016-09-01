@@ -3,6 +3,7 @@ library(dplyr)
 library(flexdashboard)
 library(ggplot2)
 library(readr)
+library(rmarkdown)
 
 setwd('/home/benfasoli/cron/air.utah.edu/')
 
@@ -197,12 +198,16 @@ saveRDS(result, 'data/stats.rds')
 
 render_air <- function() {
   # Compile status page ----------------------------------------------------------
-  tmp_path <- rmarkdown::render(input = './_dash_src.Rmd',
-                                output_file = './.tmp.html',
-                                output_format = flex_dashboard(
-                                  css = 'styles.css',
-                                  orientation = 'rows'
-                                ))
+  tmp_path <- render(input = './_dash_src.Rmd',
+                     output_file = './.tmp.html',
+                     output_format = flex_dashboard(
+                       css = 'styles.css',
+                       orientation = 'rows',
+                       includes = includes(
+                         in_header = c('_header.html',
+                                       '_header_refresher.html')
+                       )
+                     ))
   
   html <- read_lines(tmp_path)
   system(paste('rm', tmp_path))

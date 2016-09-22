@@ -130,7 +130,7 @@ if (nrow(dat) > 1) {
       temp <- dat[mask, ]
       smoothby <- 30
       temp[ ,short_species[[tracer]]] <- uataq::run_smooth(temp[ ,short_species[[tracer]]], n=smoothby)
-      temp <- temp[seq(1, nrow(temp), by=smoothby), ]
+      temp <- temp[trunc(seq(1, nrow(temp), by=smoothby)), ]
     } else temp <- dat[mask, ]
     
     mdat <- na.omit(temp)
@@ -139,20 +139,21 @@ if (nrow(dat) > 1) {
     color[color > min_max[[tracer]][2]] <- min_max[[tracer]][2]
     
     mpop<- paste(sep='<br>',
-                 paste0('<b>', pretty_site_names[dat$site], '</b>'),
-                 paste(tracer, ':<b>', round(dat[[short_species[[tracer]]]], 2), '</b>', units[[tracer]]),
-                 paste('Last updated:  ', format(dat$Time_UTC, '%Y-%m-%d %H:%M %Z')),
+                 paste0('<b>', pretty_site_names[mdat$site], '</b>'),
+                 paste(tracer, ':<b>', round(mdat[[short_species[[tracer]]]], 2), '</b>', units[[tracer]]),
+                 paste('Last updated:  ', format(mdat$Time_UTC, '%Y-%m-%d %H:%M %Z')),
                  a(target='_blank',
-                   href=url_link[dat$site],
+                   href=url_link[[site]],
                    tags$button(type='button',
                                class='btn action-button btn-large btn-danger',
                                HTML('<i class="fa fa-line-chart"></i>Go to the data!'))))
+    malpha <- scales::rescale(as.numeric(mdat$Time_UTC), to = c(0.1, 0.7))
     
     leaf <- leaf %>%
-      addCircleMarkers(lng=dat$lon, lat=dat$lat, radius=2, popup=mpop, stroke=T, weight=2,
+      addCircleMarkers(lng=mdat$lon, lat=mdat$lat, radius=3, popup=mpop, stroke=T, weight=2,
                        fillColor=cpal(color), color=cpal(color),
-                       opacity=0.3, fillOpacity=0.3) %>%
-      addCircleMarkers(lng=tail(dat$lon, 1), lat=tail(dat$lat, 1), radius=5, popup=tail(mpop, 1),
+                       opacity=malpha, fillOpacity=malpha) %>%
+      addCircleMarkers(lng=tail(mdat$lon, 1), lat=tail(mdat$lat, 1), radius=5, popup=tail(mpop, 1),
                        stroke=T, weight=2, fillColor=cpal(tail(color, 1)), color='black',
                        opacity=0.8, fillOpacity=0.8)
   }
@@ -162,14 +163,14 @@ leaf
 </div>
 
 <div class="mobileHide" style="position:fixed; top: 55px; right: 5px; text-align: left;">
-  Last updated: `r last_upd`
+Last updated: `r last_upd`
 </div>
 
 <div class="mobileHide" style="position:fixed; left: 5px; bottom: 5px; text-align: center;">
-  <a href="http://lair.utah.edu">
-    <img src="http://air.utah.edu/~benfasoli/img/LAIR_logo.png" style="width: 300px;">
-  </a>
-  <a href="http://sustainability.utah.edu">
-    <img src="http://air.utah.edu/~benfasoli/img/SCIF_logo.png" style="width: 150px;">
-  </a>
+<a href="http://lair.utah.edu">
+<img src="http://air.utah.edu/~benfasoli/img/LAIR_logo.png" style="width: 300px;">
+</a>
+<a href="http://sustainability.utah.edu">
+<img src="http://air.utah.edu/~benfasoli/img/SCIF_logo.png" style="width: 150px;">
+</a>
 </div>

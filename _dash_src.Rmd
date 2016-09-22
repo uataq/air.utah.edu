@@ -26,7 +26,7 @@ needs_data <- recent$site[!new_mask] %>%
 Row
 --------------------------------------------------------------------------------
 
-### Sites Online (`r strftime(Sys.time(), '%H:%M %Z')`) `r if (nchar(needs_data) > 0) paste(' - Deficit:', needs_data)`
+### Sites Online (`r strftime(Sys.time(), '%H:%M %Z')`) `r if (nchar(needs_data) > 0) paste(' - Inactive:', needs_data)`
 ```{r}
 pct <- length(which(recent$Time_UTC >= (Sys.time() - 3600 * 1.5))) /
   nrow(recent) * 100
@@ -43,7 +43,8 @@ gauge(round(pct), min = 0, max = 100, symbol = '%',
 
 ### Min 3 Active Reference Tanks `r if (nchar(needs_tank) > 0) paste(' - Deficit:', needs_tank)`
 ```{r}
-pct <- length(which(stats$n_co2 > 2)) / (nrow(stats) - 1) * 100
+tmp <- stats$n_co2 %>% na.omit()
+pct <- length(which(tmp > 2)) / (length(tmp)) * 100
 gauge(round(pct), min = 0, max = 100, symbol = '%',
       gaugeSectors(c(99, 100), c(80, 98), c(0, 79)))
 ```

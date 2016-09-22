@@ -11,6 +11,33 @@ setwd('/home/benfasoli/cron/air.utah.edu/')
 sites <- dir('/projects/data') %>%
   grep(pattern = 'trx|csp|mur', x = ., invert = T, value = T)
 
+# Import data ------------------------------------------------------------------
+# Fetch parsed and calibrated datasets for all sites over the last two
+# calendar months
+parsed <- lapply(sites, function(site) {
+  paths <- file.path('/projects/data', site, 'parsed') %>%
+    dir(full.names = T) %>%
+    tail(2)
+  col_types <- read_lines(paths[1], n_max = 1) %>%
+    grepl('CH4d_ppm', x = .) %>%
+    (function(x) {
+      if (x) return('T______d_d_____________cdd')
+      else return('T____________________ddc')
+    })
+  df <- lapply(paths, read_csv, locale = locale(tz = 'UTC'),
+               col_types = col_types, progress = F) %>%
+    bind_rows() %>%
+    filter(ID_co2 != -1,
+           ID_co2 != -2,
+           ID_co2 != -3)
+  
+  if (nrow(df) < 100)
+    return(data_frame(site))
+  
+  df
+}) %>%
+  bind_rows()
+
 cal <- lapply(sites, function(site) {
   paths <- file.path('/projects/data', site, 'calibrated') %>%
     dir(full.names = T) %>%
@@ -18,47 +45,42 @@ cal <- lapply(sites, function(site) {
   col_types <- read_lines(paths[1], n_max = 1) %>%
     grepl('CH4d_ppm_cal', x = .) %>%
     (function(x) {
-      if (x) return('Tddddddddddddddc')
-      else return('Tdddddddc')
+      if (x) return('Td___d_dd___d_dc')
+      else return('Td___d_dc')
     })
-  df <- paths %>%
-    lapply(read_csv, locale = locale(tz = 'UTC'), col_types = col_types,
-           progress = F) %>%
-    bind_rows
+  df <- lapply(paths, read_csv, locale = locale(tz = 'UTC'),
+               col_types = col_types, progress = F) %>%
+    bind_rows()
   
   if (nrow(df) < 100)
-    return(NULL)
+    return(data_frame(site))
   
-  if ('rmse_ch4' %in% colnames(df)) {
-    df <- df %>% select(Time_UTC, rmse_co2, rmse_ch4)
-  } else {
-    df <- df %>% select(Time_UTC, rmse_co2) %>% mutate(rmse_ch4 = NA)
-  }
-  df %>%
-    mutate(site) %>%
-    filter(Time_UTC >= Sys.time() - 7 * 24 * 3600) %>%
-    return
+  df
 }) %>%
   bind_rows()
 
+# RMSE timeseries plots --------------------------------------------------------
+# Subset calibrated dataset to produce recent data for RMSE timeseries plots
 n <- 24 * 7 # Hourly resolution
-small <- cal %>%
-  # mutate(rmse_co2 = uataq::run_smooth(rmse_co2, n = n),
-  #        rmse_ch4 = uataq::run_smooth(rmse_ch4, n = n)) %>%
-  do(.[trunc(seq(from = 1, to = nrow(.), length.out = n * length(sites))), ])%>%
-  mutate(rmse_ch4 = rmse_ch4 * 1000) %>%
-  rename(Time_Mountain = Time_UTC)
+recent <- cal %>%
+  rename(Time_Mountain = Time_UTC) %>%
+  filter(Time_Mountain >= Sys.time() - 7 * 24 * 3600) %>%
+  group_by(site_id,
+           Time_Mountain = trunc(Time_Mountain, units = 'hours') %>% 
+             as.POSIXct()) %>%
+  summarize_each(funs(mean(., na.rm = T)), rmse_co2, rmse_ch4) %>%
+  mutate(rmse_ch4 = rmse_ch4 * 1000)
 
-# CO2 --------------------------------------------------------------------------
 max_rmse <- 2.0
-bad <- small %>% filter(rmse_co2 > max_rmse)
-bad_sites <- unique(bad$site)
+bad <- recent %>% filter(rmse_co2 > max_rmse)
+bad_sites <- unique(bad$site_id)
 if (length(bad_sites) > 0) {
   txt <- paste(sep = '\n', collapse = '',
                paste0('RMSE > ', max_rmse, 'ppm: '),
                paste(bad_sites, sep = ', ', collapse = ', '))
 } else txt <- ''
-f <- ggplot(data = small, aes(x = Time_Mountain, y = rmse_co2, color = site)) +
+f <- ggplot(data = recent,
+            aes(x = Time_Mountain, y = rmse_co2, color = site_id)) +
   geom_line() +
   xlab(NULL) +
   ylab(NULL) +
@@ -70,18 +92,17 @@ f <- ggplot(data = small, aes(x = Time_Mountain, y = rmse_co2, color = site)) +
         text = element_text(size = 10))
 saveRDS(f, 'data/rmse_co2.rds')
 
-
-# CH4 --------------------------------------------------------------------------
 max_rmse <- 10
-bad <- small %>%
+bad <- recent %>%
   filter(rmse_ch4 > max_rmse)
-bad_sites <- unique(bad$site)
+bad_sites <- unique(bad$site_id)
 if (length(bad_sites) > 0) {
   txt <- paste(sep = '\n', collapse = '',
                paste0('RMSE > ', max_rmse, 'ppb: '),
                paste(bad_sites, sep = ', ', collapse = ', '))
 } else txt <- ''
-f <- ggplot(data = small, aes(x = Time_Mountain, y = rmse_ch4, color = site)) +
+f <- ggplot(data = recent %>% na.omit(),
+            aes(x = Time_Mountain, y = rmse_ch4, color = site_id)) +
   geom_line() +
   xlab(NULL) +
   ylab(NULL) +
@@ -94,28 +115,53 @@ f <- ggplot(data = small, aes(x = Time_Mountain, y = rmse_ch4, color = site)) +
 saveRDS(f, 'data/rmse_ch4.rds')
 
 
-# Stats ------------------------------------------------------------------------
-out <- lapply(sites, function(site) {
-  # Import all parsed data
-  path <- file.path('/projects/data', site, 'parsed') %>%
-    dir(full.names = T) %>%
-    tail(1)
-  col_types <- read_lines(path, n_max = 1) %>%
-    grepl('CH4d_ppm', x = .) %>%
-    (function(x) {
-      if (x) return('Tdddddddddddddddddddddccdd')
-      else return('Tdddddddddddddddddddcddc')
-    })
-  parsed <- read_csv(path, locale=locale(tz='UTC'), col_types = col_types,
-                     progress = F) %>%
-    filter(ID_co2 != -1,
-           ID_co2 != -2,
-           ID_co2 != -3)
+# Pre-calibration bias plots ---------------------------------------------------
+# Subset parsed dataset to produce recent data for calibration offset plots
+# n <- 24 * 7 # Hourly resolution
+recent <- parsed %>%
+  rename(Time_Mountain = Time_UTC) %>%
+  filter(Time_Mountain >= Sys.time() - 7 * 24 * 3600,
+         ID_co2 > 0) %>%
+  mutate(dCO2d_ppm = CO2d_ppm - ID_co2,
+         dCH4d_ppm = CH4d_ppm - ID_ch4) %>%
+  group_by(site_id,
+           Time_Mountain = trunc(Time_Mountain, units = 'hours') %>% 
+             as.POSIXct()) %>%
+  summarize_each(funs(mean(., na.rm = T)), dCO2d_ppm, dCH4d_ppm)
+
+f <- ggplot(data = recent,
+            aes(x = Time_Mountain, y = dCO2d_ppm, color = site_id)) +
+  geom_line() +
+  xlab(NULL) +
+  ylab(NULL) +
+  theme_classic() +
+  theme(legend.title = element_blank(),
+        text = element_text(size = 10))
+saveRDS(f, 'data/cal_offset_co2.rds')
+
+f <- ggplot(data = recent %>% na.omit(),
+            aes(x = Time_Mountain, y = dCH4d_ppm, color = site_id)) +
+  geom_line() +
+  xlab(NULL) +
+  ylab(NULL) +
+  theme_classic() +
+  theme(legend.title = element_blank(),
+        text = element_text(size = 10))
+saveRDS(f, 'data/cal_offset_ch4.rds')
+
+
+# Compute site summary statistics ----------------------------------------------
+out <- lapply(sites, cal, parsed, FUN = function(site, cal, parsed) {
+  parsed <- parsed %>%
+    filter(site_id == site,
+           Time_UTC >= Sys.time() %>%
+             strftime(tz = 'UTC', format = '%Y-%m-01') %>%
+             as.POSIXct(tz = 'UTC', format = '%Y-%m-%d'))
   
   tmp <- parsed %>%
     filter(ID_co2 > 0)
   if (nrow(tmp) < 1)
-    return( data_frame(site) )
+    return(data_frame(site, nsec_smp = 0))
   
   if ('CH4d_ppm' %in% colnames(tmp)) {
     tmp <- tmp %>%
@@ -145,19 +191,9 @@ out <- lapply(sites, function(site) {
   # UATAQ Calibration routine
   # https://github.com/benfasoli/uataq/blob/master/R/calibrate.r
   # Import all calibrated data
-  path <- file.path('/projects/data', site, 'calibrated') %>%
-    dir(full.names = T) %>%
-    tail(1)
-  col_types <- read_lines(path, n_max = 1) %>%
-    grepl('CH4d_ppm', x = .) %>%
-    (function(x) {
-      if (x) return('Tddddddddddddddc')
-      else return('Tdddddddc')
-    })
-  cal <- read_csv(path, locale=locale(tz='UTC'), col_types = col_types,
-                  progress = F)
+  cal <- cal %>%
+    filter(site_id == site)
   n_co2 <- tail(cal$n_co2, 1)
-  cal <- cal
   
   # Result output --------------------------------------------------------------
   # Output results to data_frame
@@ -175,6 +211,7 @@ out <- lapply(sites, function(site) {
   out
 })
 
+# Aggregate site statistics to total network stats -----------------------------
 result <- bind_rows(out) %>%
   mutate(nsec_total = as.numeric(Sys.time()) -
            Sys.time() %>%
@@ -184,8 +221,8 @@ result <- bind_rows(out) %>%
 result <- bind_rows(result,
                     data_frame(
                       site = 'Total',
-                      nsec_smp = sum(result$nsec_smp),
-                      nsec_total = sum(result$nsec_total),
+                      nsec_smp = sum(result$nsec_smp, na.rm = T),
+                      nsec_total = sum(result$nsec_total, na.rm = T),
                       bias_co2 = mean(result$bias_co2, na.rm = T),
                       bias_ch4 = mean(result$bias_ch4, na.rm = T),
                       rmse_co2 = mean(result$rmse_co2, na.rm = T),
@@ -196,13 +233,14 @@ result <- bind_rows(result,
 saveRDS(result, 'data/stats.rds')
 
 
+# Compile webpage --------------------------------------------------------------
 render_air <- function() {
-  # Compile status page ----------------------------------------------------------
   tmp_path <- render(input = './_dash_src.Rmd',
                      output_file = './.tmp.html',
                      output_format = flex_dashboard(
                        css = 'styles.css',
                        orientation = 'rows',
+                       vertical_layout = 'scroll',
                        includes = includes(
                          in_header = c('_header.html',
                                        '_header_refresher.html')
@@ -221,7 +259,6 @@ render_air <- function() {
   out <- append(out, html[(delete[2]+1):length(html)])
   write_lines(out, 'status.html')
   
-  # Compile webpage --------------------------------------------------------------
   rmarkdown::render_site(encoding = 'UTF-8')
   system('rm status.html')
   system(paste('cp -R _site/* /var/www/air.utah.edu/'))

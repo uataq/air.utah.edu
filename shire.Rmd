@@ -10,7 +10,7 @@ output:
 <br>
 
 Contact [Ben Fasoli](mailto:benfasoli@gmail.com) with questions or issues.  
-Last updated: November 30, 2015
+Last updated: July 16, 2016
 
 
 ### Where to?
@@ -20,7 +20,8 @@ Directory        | Purpose
 ---------------- | -----------------------------------
 /home            | Directories dedicated per-user. Default permissions give the owner read/write access and group/world read access.
 ~/public_html    | Users can create a public_html folder in their home directory to access and share files using apache. Files can be accessed at [air.utah.edu/~user_name](http://air.utah.edu/~benfasoli/).
-/projects        | Shared between users in the `project-data` group. This is where the vast majority of code and data will live.
+/projects        | Shared between users in the `project-data` group. This is where the vast majority of code and data lives.
+/projects/data   | Measurement data from UATAQ observation sites.
 /var/www         | Shared between users in the `www-data` group. This is where files for [air.utah.edu](http://air.utah.edu) are hosted.
 /srv/shiny-server| Shared between users in the `shiny` group. Shiny is a package for creating R-based web apps which are proxied to [air.utah.edu/s/app_name/](http://air.utah.edu/s/air/).
 

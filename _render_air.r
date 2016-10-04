@@ -9,21 +9,25 @@ setwd('/home/benfasoli/cron/air.utah.edu/')
 
 # Dashboard setup --------------------------------------------------------------
 sites <- dir('/projects/data') %>%
-  grep(pattern = 'trx|csp|mur', x = ., invert = T, value = T)
+  grep(pattern = 'trx|csp', x = ., invert = T, value = T)
 
 # Import data ------------------------------------------------------------------
 # Fetch parsed and calibrated datasets for all sites over the last two
 # calendar months
 parsed <- lapply(sites, function(site) {
-  paths <- file.path('/projects/data', site, 'parsed') %>%
+  inst <- dir(file.path('/projects/data', site))
+  col_types <- inst %>%
+    (function(x) {
+      if ('lgr-ugga' %in% x)
+        return('T______d_d_____________cdd')
+      else if ('licor-6262' %in% x)
+        return('T____________________ddc')
+      else
+        stop('Improper directory structure found...')
+    })
+  paths <- file.path('/projects/data', site, inst, 'parsed') %>%
     dir(full.names = T) %>%
     tail(2)
-  col_types <- read_lines(paths[1], n_max = 1) %>%
-    grepl('CH4d_ppm', x = .) %>%
-    (function(x) {
-      if (x) return('T______d_d_____________cdd')
-      else return('T____________________ddc')
-    })
   df <- lapply(paths, read_csv, locale = locale(tz = 'UTC'),
                col_types = col_types, progress = F) %>%
     bind_rows() %>%
@@ -32,28 +36,36 @@ parsed <- lapply(sites, function(site) {
            ID_co2 != -3)
   
   if (nrow(df) < 100)
-    return(data_frame(site))
+    return(data_frame(site_id = site))
   
   df
 }) %>%
   bind_rows()
 
 cal <- lapply(sites, function(site) {
-  paths <- file.path('/projects/data', site, 'calibrated') %>%
+  inst <- dir(file.path('/projects/data', site))
+  col_types <- inst %>%
+    (function(x) {
+      if ('lgr-ugga' %in% x)
+        return('Td___d_dd___d_dc')
+      else if ('licor-6262' %in% x)
+        return('Td___d_dc')
+      else
+        stop('Improper directory structure found...')
+    })
+  paths <- file.path('/projects/data', site, inst, 'calibrated') %>%
     dir(full.names = T) %>%
     tail(2)
-  col_types <- read_lines(paths[1], n_max = 1) %>%
-    grepl('CH4d_ppm_cal', x = .) %>%
-    (function(x) {
-      if (x) return('Td___d_dd___d_dc')
-      else return('Td___d_dc')
-    })
+  
+  if (length(paths) < 1)
+    return(data_frame(site_id = site))
+
   df <- lapply(paths, read_csv, locale = locale(tz = 'UTC'),
                col_types = col_types, progress = F) %>%
     bind_rows()
   
   if (nrow(df) < 100)
-    return(data_frame(site))
+    return(data_frame(site_id = site))
   
   df
 }) %>%

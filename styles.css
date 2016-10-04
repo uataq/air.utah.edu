@@ -34,6 +34,13 @@ a.leaflet-control-zoom-out {
   color: #000000;
 }
 
+/* hide title */
+#header {
+    visibility: hidden;
+    position: absolute;
+    top: -9999px;
+}
+
 /* last updated time well */
 div.last-upd {
   margin-top: 0;

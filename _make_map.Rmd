@@ -18,6 +18,7 @@ pretty_site_names <- data_frame(csp='Castle Peak',
                                 hdp='Hidden Peak',
                                 heb='Heber',
                                 hpl='Horsepool',
+                                imc='Intermountain Medical Center',
                                 lgn='Logan',
                                 roo='Roosevelt',
                                 rpk='Rose Park',
@@ -35,6 +36,7 @@ url_link <- data_frame(csp='http://air.utah.edu/s/view/gasview/?site=',
                        hdp=csp,
                        heb=csp,
                        hpl=csp,
+                       imc=csp,
                        lgn=csp,
                        roo=csp,
                        rpk=csp,
@@ -108,7 +110,9 @@ pad <- 0.2
 
 leaf <- leaflet(width = '100%', height = '100%') %>% 
   addTiles('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
-           attribution = 'UATAQ, Ben Fasoli. Basemap from CartoDB') %>%
+           attribution = 'UATAQ, Ben Fasoli. Map tiles from CartoDB and Esri') %>%
+  addTiles('http://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}',
+           options = tileOptions(opacity = 0.2)) %>%
   fitBounds(min(dat$lon)-pad, min(dat$lat)-pad,
             max(dat$lon)+pad, max(dat$lat)+pad) %>%
   addCircleMarkers(lng=dat$lon, lat=dat$lat, popup=pop, radius=10, weight=2,
@@ -154,7 +158,7 @@ if (nrow(dat) > 1) {
                        fillColor=cpal(color), color=cpal(color),
                        opacity=malpha, fillOpacity=malpha) %>%
       addCircleMarkers(lng=tail(mdat$lon, 1), lat=tail(mdat$lat, 1), radius=5, popup=tail(mpop, 1),
-                       stroke=T, weight=2, fillColor=cpal(tail(color, 1)), color='black',
+                       stroke=T, weight=1, fillColor=cpal(tail(color, 1)), color='black',
                        opacity=0.8, fillOpacity=0.8)
   }
 }

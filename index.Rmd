@@ -1,3 +1,6 @@
+---
+title: UATAQ Home
+---
 <!-- Ben Fasoli -->
 
 ```{r, include = F}

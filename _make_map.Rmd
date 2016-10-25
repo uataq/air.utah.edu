@@ -125,7 +125,7 @@ leaf <- leaflet(width = '100%', height = '100%') %>%
 # Add TRAX data ----------------------------------------------------------------
 dat <- raw$mobile
 dat <- dat[ , c('Time_UTC', 'lat', 'lon', 'site', short_species[[tracer]])]
-dat[dat$Time_UTC < Sys.time() - 3800 * 1.5, short_species[[tracer]]] <- NA
+try(dat[dat$Time_UTC < Sys.time() - 3800 * 1.5, short_species[[tracer]]] <- NA)
 dat <- na.omit(dat)
 if (nrow(dat) > 1) {
   for (site in unique(dat$site)){

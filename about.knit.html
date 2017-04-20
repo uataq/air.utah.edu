@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+
+<title>About UATAQ</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-1.1/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-1.1/highlight.js"></script>
+
+<!-- define tab title -->
+<!-- <title> UATAQ Lab </title> -->
+<link rel="icon" href="http://utah.edu/favicon.ico">
+
+<!-- font awesome icon library -->
+<script src="https://use.fontawesome.com/4e14d22100.js"></script>
+
+<!-- iOS app compatibility -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="http://air.utah.edu/~benfasoli/img/touch-icon-iphone.png">
+<link rel="apple-touch-icon" sizes="76x76" href="http://air.utah.edu/~benfasoli/img/touch-icon-ipad.png">
+<link rel="apple-touch-icon" sizes="120x120" href="http://air.utah.edu/~benfasoli/img/touch-icon-iphone-retina.png">
+<link rel="apple-touch-icon" sizes="152x152" href="http://air.utah.edu/~benfasoli/img/touch-icon-ipad-retina.png">
+
+<!-- google analytics -->
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-71060029-3', 'auto');
+  ga('send', 'pageview');
+</script>
+
+<!-- disable browser caching -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+<link rel="stylesheet" href="styles.css" type="text/css" />
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+<!-- Ben Fasoli -->
+<!-- Shared navbar for air.utah.edu -->
+<nav class="navbar navbar-default navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#airnav">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">
+        <div class="mobileHide">
+          <img src="http://air.utah.edu/~benfasoli/img/utelogo.png" style="height: 17px;  position: relative; bottom:2px;">
+          Atmospheric Trace gas &amp; Air Quality
+        </div>
+        <div class="mobileShow">
+          <img src="http://air.utah.edu/~benfasoli/img/utelogo.png" style="height: 17px;">
+          ATAQ Lab
+        </div>
+      </a>
+    </div><!--/.navbar-header-->
+    <div id="airnav" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+            Maps <span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu" role="menu">
+            <li>
+              <a href="index.html">
+                <div class="tracer-left">CO<sub>2</sub></div>
+                Carbon Dioxide
+              </a>
+            </li>
+            <li>
+              <a href="map-ch4.html">
+                <div class="tracer-left">CH<sub>4</sub></div>
+                Methane
+              </a>
+            </li>
+            <li>
+              <a href="map-pm25.html">
+                <div class="tracer-left">PM<sub>2.5</sub></div>
+                Particulate Matter
+              </a>
+            </li>
+            <li>
+              <a href="map-o3.html">
+                <div class="tracer-left">O<sub>3</sub></div>
+                Ozone
+              </a>
+            </li>
+          </ul>
+        </li>
+        
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+            Utilities <span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu" role="menu">
+            <li>
+              <a href="status.html">
+                <i class="fa fa-tachometer fa-fw" aria-hidden="true"></i>
+                Status dashboard
+              </a>
+            </li>
+            <li>
+              <a href="/s/utilities/tech_home/">
+                <i class="fa fa-th fa-fw" aria-hidden="true"></i>
+                Web tools
+              </a>
+            </li>
+            <li class="divider"></li>
+            <li>
+              <a href="tank-request.html">
+                <i class="fa fa-cloud fa-fw" aria-hidden="true"></i>
+                Request reference tank
+              </a>
+            </li>
+          </ul>
+        </li>
+            
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+            Data <span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu" role="menu">
+            <li>
+              <a href="http://air.utah.edu/s/view/nerdmobile/">
+                <i class="fa fa-car fa-fw" aria-hidden="true"></i>
+                Nerdmobile mobile lab
+              </a>
+            </li>
+            <li>
+              <a href="http://air.utah.edu/s/view/gasview/">
+                <i class="fa fa-line-chart fa-fw" aria-hidden="true"></i>
+                Interactive timeseries
+              </a>
+            </li>
+            <li>
+              <a href="http://air.utah.edu/s/view/trax/">
+                <i class="fa fa-train fa-fw" aria-hidden="true"></i>
+                TRAX light-rail
+              </a>
+            </li>
+            <li class="divider"></li>
+            <li>
+              <a href="http://air.utah.edu/s/data/">
+                <i class="fa fa-download fa-fw" aria-hidden="true"></i>
+                Download data
+              </a>
+            </li>
+            <li>
+              <a href="https://github.com/benfasoli/lair-proc">
+                <i class="fa fa-refresh fa-fw" aria-hidden="true"></i>
+                Data processing code
+              </a>
+            </li>
+            <li>
+              <a href="https://github.com/benfasoli/uataq">
+                <i class="fa fa-archive fa-fw" aria-hidden="true"></i>
+                UATAQ R Package
+              </a>
+            </li>
+          </ul>
+        </li>
+
+        <li>
+          <a href="about.html">About</a>
+        </li>
+      </ul>
+
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+          <a href="/s/auth/">
+            <i class="fa fa-lock" aria-hidden="true"></i>
+            Sign in
+          </a>
+        </li>
+      </ul>
+
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</nav>
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">About UATAQ</h1>
+
+</div>
+
+
+<!-- Ben Fasoli -->
+<div class="container-fluid" style="margin-top: 15px;">
+<div class="panel panel-default span10 offset1">
+<div class="panel-heading">
+<h4 class="panel-title">
+About UATAQ
+</h4>
+</div>
+<div class="panel-body">
+<p>The Utah Atmospheric Trace Gas &amp; Air Quality (UATAQ) lab was started in 2013 as a joint effort between the Global Change and Sustainability Center, the Department of Biology and the Department of Atmospheric Science. The mission of the lab is to collect and analyze long term, high frequency, high precision, and spatially variable trace gas and air quality data with the aim of understanding the spatial distribution and long term trends throughout Salt Lake Valley and Northern Utah. Building on the work of one of the founding members, Dr. Jim Ehleringer, the lab has been responsible for improving and expanding existing networks of instrumentation, developing and implementing new networks with different aims, and building an on campus facility for research, development, and student outreach. UATAQ specializes in the long term measurement of both mobile and in-situ trace gas and criteria pollutants. Our data is calibrated to international standards and we possess numerous years of experience in collecting trace gas data, including one of the longest continuous urban CO2 records in the nation.</p>
+<h4 id="research-information">Research Information</h4>
+<p><a href="http://air.utah.edu/s/archive/aguf2015/">AGU Fall 2015 Presentations</a><br />
+Mobile pollutant measurement platforms (Fasoli), High resolution emissions model comparisons (Mendoza)<br />
+<a href="http://lair.utah.edu">LAIR Home</a><br />
+Land-Atmosphere Interactions Research (LAIR) group home</p>
+<h4 id="people">People</h4>
+<p><a href="http://benfasoli.com">Ben Fasoli</a><br />
+Student Director</p>
+<p><a href="mailto:ryan.bares@utah.edu">Ryan Bares</a><br />
+Research Analyst</p>
+<p><a href="http://lair.utah.edu">John C. Lin</a><br />
+Associate Professor, Atmospheric Sciences</p>
+<p><a href="http://biologylabs.utah.edu/bowling/">Dave Bowling</a><br />
+Associate Professor, Biology</p>
+<p><a href="http://www.biology.utah.edu/people/details.php?id=104">Jim Ehleringer</a><br />
+Distinguished Professor, Biology</p>
+<h4 id="support">Support</h4>
+<p>Funding sources for the lab include the Department of Energy, the National Oceanic and Atmospheric Administration (NOAA), the Global Change and Sustainability Center, and the Sustainable Campus Initative at the University of Utah.</p>
+</div>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

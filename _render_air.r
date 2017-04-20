@@ -59,7 +59,7 @@ cal <- lapply(sites, function(site) {
   
   if (length(paths) < 1)
     return(data_frame(site_id = site))
-
+  
   df <- lapply(paths, read_csv, locale = locale(tz = 'UTC'),
                col_types = col_types, progress = F) %>%
     bind_rows()

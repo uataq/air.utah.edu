@@ -1,11 +1,17 @@
+---
+title: UATAQ CH4
+---
+<!-- Ben Fasoli -->
+
+```{r, include = F}
+tracer <- 'Methane (CH4)'
+```
 
 <div class="map">
 
 ```{r, echo = F, message = F, warning = F}
 library(dplyr)
-# library(flexdashboard)
 library(leaflet)
-library(shiny)
 
 # Display parameters -----------------------------------------------------------
 other_sites <- data_frame(site=c('haw', 'wnd'),
@@ -30,7 +36,7 @@ pretty_site_names <- data_frame(csp='Castle Peak',
                                 
                                 haw='Hawthorne (DAQ)',
                                 wnd='Wendover')
-url_link <- data_frame(csp='http://air.utah.edu/s/view/meas/?site_id=',
+url_link <- data_frame(csp='http://air.utah.edu/s/view/gasview/?site=',
                        dbk=csp,
                        fru=csp,
                        hdp=csp,
@@ -131,17 +137,6 @@ if (nrow(dat) > 1) {
   for (site in unique(dat$site)){
     mask <- dat$site == site
     if(nrow(dat[mask, ]) > 300){
-      # temp <- dat[mask, ] %>%
-      #   # temp <- dat %>%
-      #   group_by(lat = round(lat, 3),
-      #            lon = round(lon, 3)) %>%
-      #   summarize_if(is.numeric, funs(mean(., na.rm = T)))
-      # summarize(Time_UTC = Time_UTC[1],
-      #           site = site[1],
-      #           CO2d_ppm = mean(CO2d_ppm, na.rm = T),
-      #           CH4d_ppm = mean(CH4d_ppm, na.rm = T),
-      #           PM25_ugm3 = mean(PM25_ugm3, na.rm = T),
-      #           O3_ppbv = mean(O3_ppbv, na.rm = T))
       temp <- dat[mask, ]
       smoothby <- 30
       temp[ ,short_species[[tracer]]] <- uataq::run_smooth(temp[ ,short_species[[tracer]]], n=smoothby)
@@ -156,11 +151,11 @@ if (nrow(dat) > 1) {
     mpop<- paste(sep='<br>',
                  paste0('<b>', pretty_site_names[mdat$site], '</b>'),
                  paste(tracer, ':<b>', round(mdat[[short_species[[tracer]]]], 2), '</b>', units[[tracer]]),
-                 paste('Last updated:  ', format(mdat$Time_UTC, tz = 'America/Denver', '%Y-%m-%d %H:%M %Z')),
+                 paste('Last updated:  ', format(mdat$Time_UTC, '%Y-%m-%d %H:%M %Z')),
                  a(target='_blank',
                    href=url_link[[site]],
                    tags$button(type='button',
-                               class='btn btn-danger btn-block',
+                               class='btn action-button btn-large btn-danger',
                                HTML('<i class="fa fa-line-chart"></i>Go to the data!'))))
     malpha <- scales::rescale(as.numeric(mdat$Time_UTC), to = c(0.1, 0.7))
     

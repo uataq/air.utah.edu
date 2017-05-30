@@ -60,68 +60,108 @@ gauge(round(pct), min = 0, max = 100, symbol = '%',
                    danger  = c(0, 84)))
 ```
 
-Row
+
+Row {data-height=350}
 --------------------------------------------------------------------------------
 
-### CO$_2$ Pre-calibration Bias
+### CO$_2$ Calibrated Measurement Timeseries
 ```{r}
-val <- mo$bias_co2
-color <-
-  if (val < 4) {
-    'success'
-  } else if (val >= 4 && val < 6) {
-    'warning'
-  } else {
-    'danger'
-  }
-txt <- paste(signif(val, 2), 'ppm')
-flexdashboard::valueBox(txt, color = color, icon = 'fa-area-chart')
+plotly::ggplotly(readRDS('data/ts_co2.rds'))
 ```
 
-### CO$_2$ Regression RMSE
+### CH$_4$ Calibrated Measurement Timeseries
 ```{r}
-val <- mo$rmse_co2
-color <-
-  if (val < 0.4) {
-    'success'
-  } else if (val >= 0.4 && val < 0.8) {
-    'warning'
-  } else {
-    'danger'
-  }
-txt <- paste(signif(val, 2), 'ppm')
-flexdashboard::valueBox(txt, color = color, icon = 'fa-tachometer')
+plotly::ggplotly(readRDS('data/ts_ch4.rds'))
 ```
 
-### CH$_4$ Pre-calibration Bias
+Row {data-height=250}
+--------------------------------------------------------------------------------
+
+### CO$_2$ Average Diel Concentration
 ```{r}
-val <- mo$bias_ch4 * 1000
-color <-
-  if (val < 18) {
-    'success'
-  } else if (val >= 18 && val < 30) {
-    'warning'
-  } else {
-    'danger'
-  }
-txt <- paste(round(val), 'ppb')
-flexdashboard::valueBox(txt, color = color, icon = 'fa-area-chart')
+plotly::ggplotly(readRDS('data/diurnal_co2.rds'))
 ```
 
-### CH$_4$ Regression RMSE
+### CH$_4$ Average Diel Concentration
 ```{r}
-val <- mo$rmse_ch4 * 1000
-color <-
-  if (val < 4) {
-    'success'
-  } else if (val >= 4 && val < 6) {
-    'warning'
-  } else {
-    'danger'
-  }
-txt <- paste(round(val), 'ppb')
-flexdashboard::valueBox(txt, color = color, icon = 'fa-tachometer')
+plotly::ggplotly(readRDS('data/diurnal_ch4.rds'))
 ```
+
+Row {data-height=250}
+--------------------------------------------------------------------------------
+
+### CO$_2$ Average Diel Standard Deviation
+```{r}
+plotly::ggplotly(readRDS('data/diurnal_co2_sd.rds'))
+```
+
+### CH$_4$ Average Diel Standard Deviation
+```{r}
+plotly::ggplotly(readRDS('data/diurnal_ch4_sd.rds'))
+```
+
+<!-- Row -->
+<!-- -------------------------------------------------------------------------------- -->
+
+<!-- ### CO$_2$ Pre-calibration Bias -->
+<!-- ```{r} -->
+<!-- val <- mo$bias_co2 -->
+<!-- color <- -->
+<!--   if (val < 4) { -->
+<!--     'success' -->
+<!--   } else if (val >= 4 && val < 6) { -->
+<!--     'warning' -->
+<!--   } else { -->
+<!--     'danger' -->
+<!--   } -->
+<!-- txt <- paste(signif(val, 2), 'ppm') -->
+<!-- flexdashboard::valueBox(txt, color = color, icon = 'fa-area-chart') -->
+<!-- ``` -->
+
+<!-- ### CO$_2$ Regression RMSE -->
+<!-- ```{r} -->
+<!-- val <- mo$rmse_co2 -->
+<!-- color <- -->
+<!--   if (val < 0.4) { -->
+<!--     'success' -->
+<!--   } else if (val >= 0.4 && val < 0.8) { -->
+<!--     'warning' -->
+<!--   } else { -->
+<!--     'danger' -->
+<!--   } -->
+<!-- txt <- paste(signif(val, 2), 'ppm') -->
+<!-- flexdashboard::valueBox(txt, color = color, icon = 'fa-tachometer') -->
+<!-- ``` -->
+
+<!-- ### CH$_4$ Pre-calibration Bias -->
+<!-- ```{r} -->
+<!-- val <- mo$bias_ch4 * 1000 -->
+<!-- color <- -->
+<!--   if (val < 18) { -->
+<!--     'success' -->
+<!--   } else if (val >= 18 && val < 30) { -->
+<!--     'warning' -->
+<!--   } else { -->
+<!--     'danger' -->
+<!--   } -->
+<!-- txt <- paste(round(val), 'ppb') -->
+<!-- flexdashboard::valueBox(txt, color = color, icon = 'fa-area-chart') -->
+<!-- ``` -->
+
+<!-- ### CH$_4$ Regression RMSE -->
+<!-- ```{r} -->
+<!-- val <- mo$rmse_ch4 * 1000 -->
+<!-- color <- -->
+<!--   if (val < 4) { -->
+<!--     'success' -->
+<!--   } else if (val >= 4 && val < 6) { -->
+<!--     'warning' -->
+<!--   } else { -->
+<!--     'danger' -->
+<!--   } -->
+<!-- txt <- paste(round(val), 'ppb') -->
+<!-- flexdashboard::valueBox(txt, color = color, icon = 'fa-tachometer') -->
+<!-- ``` -->
 
 
 Row {data-height=250}

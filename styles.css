@@ -87,3 +87,5 @@ and (max-device-width: 480px) {
 and (max-device-width: 480px) {
   .mobileShow { display: inline; }
 }
+
+/* dygraphs partial transparency */

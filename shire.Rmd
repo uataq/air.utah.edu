@@ -40,7 +40,7 @@ Spec          | Installed
 ------------- | ---------------------------
 Storage       | 4x 3TB HDDs in RAID 10
 CPU           | Quad core Xeon E3-1225v3
-RAM           | 20GB DDR3 1600MHz
+RAM           | 32GB DDR3 1600MHz
 
 
 ### rstudio-server

@@ -137,7 +137,7 @@ f <- diurnal %>%
   geom_line(alpha = 0.5) +
   xlab(NULL) +
   ylab(NULL) +
-  coord_cartesian(ylim = c(1.85, 2.85)) +
+  coord_cartesian(ylim = c(1.85, 3)) +
   theme_classic() +
   theme(legend.title = element_blank(),
         text = element_text(size = 10))
@@ -184,6 +184,7 @@ recent <- parsed %>%
 
 f <- ggplot(data = recent,
             aes(x = Time_Mountain, y = dCO2d_ppm, color = site_id)) +
+  geom_hline(yintercept = 0, alpha = 0.2, linetype = 'dashed') +
   geom_line() +
   xlab(NULL) +
   ylab(NULL) +
@@ -194,6 +195,7 @@ saveRDS(f, 'data/cal_offset_co2.rds')
 
 f <- ggplot(data = recent %>% na.omit(),
             aes(x = Time_Mountain, y = dCH4d_ppm, color = site_id)) +
+  geom_hline(yintercept = 0, alpha = 0.2, linetype = 'dashed') +
   geom_line() +
   xlab(NULL) +
   ylab(NULL) +

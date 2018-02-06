@@ -20,8 +20,8 @@
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
-<link href="site_libs/highlightjs-1.1/default.css" rel="stylesheet" />
-<script src="site_libs/highlightjs-1.1/highlight.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
 
 <!-- define tab title -->
 <!-- <title> UATAQ Lab </title> -->
@@ -59,10 +59,12 @@
   }
 </style>
 <script type="text/javascript">
-if (window.hljs && document.readyState && document.readyState === "complete") {
-   window.setTimeout(function() {
-      hljs.initHighlighting();
-   }, 0);
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
 }
 </script>
 
@@ -246,7 +248,7 @@ $(document).ready(function () {
             </li>
           </ul>
         </li>
-        
+
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
             Utilities <span class="caret"></span>
@@ -279,7 +281,7 @@ $(document).ready(function () {
             </li>
           </ul>
         </li>
-            
+
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
             Data <span class="caret"></span>
@@ -292,15 +294,21 @@ $(document).ready(function () {
               </a>
             </li>
             <li>
+              <a href="http://air.utah.edu/s/view/trax/">
+                <i class="fa fa-train fa-fw" aria-hidden="true"></i>
+                TRAX light-rail
+              </a>
+            </li>
+            <li>
               <a href="http://air.utah.edu/s/view/meas/">
-                <i class="fa fa-line-chart fa-fw" aria-hidden="true"></i>
+                <i class="fa fa-area-chart fa-fw" aria-hidden="true"></i>
                 Interactive timeseries
               </a>
             </li>
             <li>
-              <a href="http://air.utah.edu/s/view/trax/">
-                <i class="fa fa-train fa-fw" aria-hidden="true"></i>
-                TRAX light-rail
+              <a href="http://air.utah.edu/historic_co2.html">
+                <i class="fa fa-line-chart fa-fw" aria-hidden="true"></i>
+                Historic timeseries
               </a>
             </li>
             <li class="divider"></li>
@@ -339,8 +347,8 @@ $(document).ready(function () {
         </li>
       </ul>
 
-    </div><!--/.nav-collapse -->
-  </div><!--/.container -->
+    </div>
+  </div>
 </nav>
 
 <div class="fluid-row" id="header">
@@ -361,6 +369,7 @@ About UATAQ
 </h4>
 </div>
 <div class="panel-body">
+<p>“Climate change is one of the most pressing and difficult issues of our time, and we are committed to doing our part to respond to it through research, teaching, and operations at the University of Utah” - University of Utah President David W. Pershing and Board of Trustees</p>
 <p>The Utah Atmospheric Trace Gas &amp; Air Quality (UATAQ) lab was started in 2013 as a joint effort between the Global Change and Sustainability Center, the Department of Biology and the Department of Atmospheric Science. The mission of the lab is to collect and analyze long term, high frequency, high precision, and spatially variable trace gas and air quality data with the aim of understanding the spatial distribution and long term trends throughout Salt Lake Valley and Northern Utah. Building on the work of one of the founding members, Dr. Jim Ehleringer, the lab has been responsible for improving and expanding existing networks of instrumentation, developing and implementing new networks with different aims, and building an on campus facility for research, development, and student outreach. UATAQ specializes in the long term measurement of both mobile and in-situ trace gas and criteria pollutants. Our data is calibrated to international standards and we possess numerous years of experience in collecting trace gas data, including one of the longest continuous urban CO2 records in the nation.</p>
 <h4 id="research-information">Research Information</h4>
 <p><a href="http://air.utah.edu/s/archive/aguf2015/">AGU Fall 2015 Presentations</a><br />
@@ -371,12 +380,12 @@ Land-Atmosphere Interactions Research (LAIR) group home</p>
 <p><a href="http://benfasoli.com">Ben Fasoli</a><br />
 Student Director</p>
 <p><a href="mailto:ryan.bares@utah.edu">Ryan Bares</a><br />
-Research Analyst</p>
+UATAQ Lab Manager</p>
 <p><a href="http://lair.utah.edu">John C. Lin</a><br />
 Associate Professor, Atmospheric Sciences</p>
-<p><a href="http://biologylabs.utah.edu/bowling/">Dave Bowling</a><br />
+<p><a href="http://biologylabs.utah.edu/bowling/">David Bowling</a><br />
 Associate Professor, Biology</p>
-<p><a href="http://www.biology.utah.edu/people/details.php?id=104">Jim Ehleringer</a><br />
+<p><a href="http://www.biology.utah.edu/people/details.php?id=104">James Ehleringer</a><br />
 Distinguished Professor, Biology</p>
 <h4 id="support">Support</h4>
 <p>Funding sources for the lab include the Department of Energy, the National Oceanic and Atmospheric Administration (NOAA), the Global Change and Sustainability Center, and the Sustainable Campus Initative at the University of Utah.</p>

@@ -64,14 +64,14 @@ gauge(round(pct), min = 0, max = 100, symbol = '%',
 Row {data-height=350}
 --------------------------------------------------------------------------------
 
-### CO$_2$ Calibrated Measurement Timeseries
+### CO$_2$ Calibrated <span style="float:right;"><a href="https://air.utah.edu/s/view/diagnostics/"><i class="fa fa-bar-chart"></i>Go To Site Diagnostics</a></span>
 ```{r}
-plotly::ggplotly(readRDS('data/ts_co2.rds'))
+plotly::ggplotly(readRDS('data/ts_co2.rds'), dynamicTicks = T)
 ```
 
-### CH$_4$ Calibrated Measurement Timeseries
+### CH$_4$ Calibrated
 ```{r}
-plotly::ggplotly(readRDS('data/ts_ch4.rds'))
+plotly::ggplotly(readRDS('data/ts_ch4.rds'), dynamicTicks = T)
 ```
 
 Row {data-height=250}
@@ -79,12 +79,12 @@ Row {data-height=250}
 
 ### CO$_2$ Average Diel Concentration
 ```{r}
-plotly::ggplotly(readRDS('data/diurnal_co2.rds'))
+plotly::ggplotly(readRDS('data/diurnal_co2.rds'), dynamicTicks = T)
 ```
 
 ### CH$_4$ Average Diel Concentration
 ```{r}
-plotly::ggplotly(readRDS('data/diurnal_ch4.rds'))
+plotly::ggplotly(readRDS('data/diurnal_ch4.rds'), dynamicTicks = T)
 ```
 
 Row {data-height=250}
@@ -92,12 +92,12 @@ Row {data-height=250}
 
 ### CO$_2$ Average Diel Standard Deviation
 ```{r}
-plotly::ggplotly(readRDS('data/diurnal_co2_sd.rds'))
+plotly::ggplotly(readRDS('data/diurnal_co2_sd.rds'), dynamicTicks = T)
 ```
 
 ### CH$_4$ Average Diel Standard Deviation
 ```{r}
-plotly::ggplotly(readRDS('data/diurnal_ch4_sd.rds'))
+plotly::ggplotly(readRDS('data/diurnal_ch4_sd.rds'), dynamicTicks = T)
 ```
 
 <!-- Row -->
@@ -170,13 +170,13 @@ Row {data-height=250}
 ### CO$_2$ Pre-calibration Bias
 
 ```{r} 
-plotly::ggplotly(readRDS('data/cal_offset_co2.rds'))
+plotly::ggplotly(readRDS('data/cal_offset_co2.rds'), dynamicTicks = T)
 ```
 
 ### CH$_4$ Pre-calibration Bias
 
 ```{r}
-plotly::ggplotly(readRDS('data/cal_offset_ch4.rds'))
+plotly::ggplotly(readRDS('data/cal_offset_ch4.rds'), dynamicTicks = T)
 ```
 
 
@@ -186,11 +186,11 @@ Row {data-height=250}
 ### CO$_2$ Regression RMSE
 
 ```{r} 
-plotly::ggplotly(readRDS('data/rmse_co2.rds'))
+plotly::ggplotly(readRDS('data/rmse_co2.rds'), dynamicTicks = T)
 ```
 
 ### CH$_4$ Regression RMSE
 
 ```{r}
-plotly::ggplotly(readRDS('data/rmse_ch4.rds'))
+plotly::ggplotly(readRDS('data/rmse_ch4.rds'), dynamicTicks = T)
 ```

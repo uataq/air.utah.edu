@@ -4,7 +4,7 @@ output:
   html_document:
     theme: cosmo
     includes:
-      in_header: _header.html
+      in_header: _includes/head.html
 ---
 <!-- Ben Fasoli -->
 <br>

@@ -1,16 +1,13 @@
-name: uataq-home
+name: uataq
 include:
-- historic_co2.html
+- historic-co2.html
 - status.html
 - favicon.ico
-exclude: data
 output:
   html_document:
-    theme: default
     css: styles.css
     includes:
-      in_header: _header.html
+      in_header: _includes/head.html
     lib_dir: site_libs
     self_contained: no
 output_dir: _site
-

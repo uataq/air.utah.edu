@@ -1,0 +1,26 @@
+---
+title: UATAQ Historic Carbon Dioxide
+---
+<!-- Ben Fasoli -->
+
+```{r setup}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+library(plotly)
+library(tidyverse)
+
+historic <- readRDS('../_data_historic.rds')
+historic$Site[historic$Site == 'imc'] <- 'mur'
+historic$Site[historic$Site == 'wbb'] <- 'uou'
+historic$Site <- toupper(historic$Site)
+```
+
+
+Row {data-height=800}
+--------------------------------------------------------------------------------
+
+### Salt Lake Valley CO$_2$ Trends
+```{r}
+plot_ly(historic, x = ~Time, y = ~CO2_ppm, color = ~Site,
+        type = 'scatter', mode = 'lines')
+```

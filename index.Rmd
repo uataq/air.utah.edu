@@ -1,11 +1,133 @@
 ---
-title: UATAQ Home
+title: "UATAQ Home"
 ---
-<!-- Ben Fasoli -->
 
-```{r, include = FALSE}
-tracer <- 'Carbon Dioxide (CO2)'
+<div class="map">
+
+```{r, , echo = FALSE, message = FALSE, warning = FALSE}
+library(htmltools)
+library(leaflet)
+library(tidyverse)
+
+config <- data_frame(
+  col = c('CO2d_ppm',
+          'CH4d_ppm'),
+  name = c('Carbon Dioxide',
+           'Methane'),
+  min = c(400,
+          1.8),
+  max = c(500, 
+          2.5)
+)
+
+# Read data and filter for last 2 hours
+data_master <- readRDS('_data.rds')
+data <- data_master$qaqc %>%
+  filter(ID_CO2 == -10) %>%
+  group_by(stid) %>%
+  summarize_all(funs(tail(., 1))) %>%
+  ungroup()
+
+# Invalidate points older than 2 hours
+invalid_rows <- data$Time_UTC < Sys.time() - 7200
+invalid_cols <- setdiff(colnames(data), c('Time_UTC', 'stid'))
+data[invalid_rows, invalid_cols] <- NA
+
+# Determine time of most recent data point, formatted for print
+last_process <- strftime(max(data$Time_UTC, na.rm = T), tz = 'America/Denver',
+                         '%b %d %I:%M %p %Z')
+
+# Read site metadata
+site_config <- fread('../proc/config/site_config.csv')
+
+# Merge metadata with last record for each site
+map_data <- inner_join(select(data, stid, Time_UTC, CO2d_ppm, CH4d_ppm),
+                       select(site_config, stid, lati, long),
+                       by = 'stid')
+
+# Merge mobile and fixed sites
+map_data <- bind_rows(map_data %>% mutate(is_fixed = T),
+                      data_master$trx %>% mutate(is_fixed = F)) %>% 
+  inner_join(select(site_config, stid, name), by = 'stid') %>%
+  mutate(CO2d_ppm = round(CO2d_ppm, 0),
+         CH4d_ppm = round(CH4d_ppm, 1))
+
+# Set circle radii depending on mobile vs fixed sites
+map_data$radius <- ifelse(map_data$is_fixed, 16, 5)
+map_data$stroke_weight <- ifelse(map_data$is_fixed, 2, 1)
+
+# Define URL for popup link
+map_data$url <- paste0('https://air.utah.edu/s/view/meas/?site_id=', map_data$stid)
+map_data$url[grepl('trx', map_data$stid)] <- 'http://air.utah.edu/s/view/trax/'
+map_data$popup <- paste0(
+  '<b>', map_data$name, '</b>', ' (', toupper(map_data$stid), ')<br>',
+  strftime(data$Time_UTC, tz = 'America/Denver', format = '%b %d %I:%M %p %Z<br>'),
+  ifelse(is.na(map_data$CO2d_ppm), '',
+         paste0('CO<sub>2</sub>&emsp;<b>', map_data$CO2d_ppm, ' ppm</b><br>')),
+  ifelse(is.na(map_data$CH4d_ppm), '',
+         paste0('CH<sub>4</sub>&emsp;<b>', map_data$CH4d_ppm, ' ppm</b><br>')),
+  '<a target="_blank" href="', map_data$url, '"><button class="btn btn-danger btn-block">',
+  '<i class="fa fa-line-chart"></i> Go to the data!</button></a>'
+)
+
+# Initialize map
+map <- leaflet(data = map_data, width = '100%', height = '100%',
+               options = leafletOptions(
+                 maxZoom = 13
+               )) %>%
+  addTiles('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
+           attribution = paste(sep = ' | ',
+                               'Ben Fasoli',
+                               'Map data &copy; CartoDB/Esri',
+                               strftime(max(data$Time_UTC, na.rm = T), 
+                                        tz = 'America/Denver',
+                                        format = '%b %d %I:%M %p %Z'))) %>%
+  addTiles(paste0('http://server.arcgisonline.com/ArcGIS/rest/services/',
+                  'World_Terrain_Base/MapServer/tile/{z}/{y}/{x}'),
+           options = tileOptions(opacity = 0.2)) %>%
+  addLayersControl(
+    baseGroups = c('Carbon Dioxide', 'Methane'),
+    options = layersControlOptions(collapsed = F)
+  )
+
+# Add species groups
+for (i in 1:nrow(config)) {
+  color_range <- c(config$min[i], config$max[i])
+  pal <- colorNumeric('RdYlBu', color_range, reverse = T,
+                      na.color = '#d6d6d6')
+  
+  # Format as character vector for label placement
+  label <- as.character(map_data[[config$col[i]]])
+  label[!map_data$is_fixed] <- NA
+  
+  # Rescale values to within color range
+  color_values <- map_data[[config$col[i]]]
+  color_values[color_values < color_range[1]] <- color_range[1]
+  color_values[color_values > color_range[2]] <- color_range[2]
+  
+  map <- map %>%
+    addCircleMarkers(~long, ~lati, popup = ~popup,
+                     radius = ~radius, 
+                     opacity = 0.3, weight = ~stroke_weight,
+                     color = 'white', group = config$name[i],
+                     fillColor = pal(color_values), fillOpacity = 0.7,
+                     label = label,
+                     labelOptions = labelOptions(noHide = T,
+                                                 direction = 'center',
+                                                 textOnly = T))
+}
+
+map
 ```
 
-```{r, child = '_make_map.Rmd'}
-```
+</div>
+
+<div class="mobileHide" style="position:fixed; left: 5px; bottom: 5px; text-align: center;">
+<a href="http://sustainability.utah.edu">
+<img src="http://air.utah.edu/~benfasoli/img/SCIF_logo.png" style="width: 130px;">
+</a>
+<a href="http://lair.utah.edu">
+<img src="http://air.utah.edu/~benfasoli/img/LAIR_logo.png" style="width: 250px;">
+</a>
+</div>
+

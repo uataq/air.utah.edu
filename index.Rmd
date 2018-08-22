@@ -5,6 +5,7 @@ title: "UATAQ Home"
 <div class="map">
 
 ```{r, , echo = FALSE, message = FALSE, warning = FALSE}
+library(data.table)
 library(htmltools)
 library(leaflet)
 library(tidyverse)

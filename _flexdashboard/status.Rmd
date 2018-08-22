@@ -165,7 +165,7 @@ subplot(
 )
 ```
 
-### Network Diagnostics <span style="float:right;"><a href="https://github.com/benfasoli/uataq-proc/tree/dev#qaqc-flagging-conventions"><i class="fa fa-bars"></i> QAQC Definitions</a></span>
+### Network Diagnostics <span style="float:right;"><a href="https://github.com/uataq/data-pipeline#qaqc-flagging-conventions"><i class="fa fa-bars"></i> QAQC Definitions</a></span>
 ```{r}
 style <- formattable::style
 checkStyle <- icontext('ok')

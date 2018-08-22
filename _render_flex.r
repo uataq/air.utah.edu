@@ -1,4 +1,4 @@
-render_flex <- function(src) {
+render_flex <- function(src, ...) {
   require(rmarkdown)
   
   # Flexdashboard initial html build
@@ -12,7 +12,7 @@ render_flex <- function(src) {
                    ),
                    orientation = 'rows',
                    vertical_layout = 'scroll'
-                 )
+                 ), ...
   )
   html <- readLines(file)
   

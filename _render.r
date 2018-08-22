@@ -11,7 +11,7 @@ Sys.setenv('RSTUDIO_PANDOC' = '/usr/lib/rstudio-server/bin/pandoc')
 source('air.utah.edu/_render_data.r')
 setwd('/uufs/chpc.utah.edu/common/home/lin-group2/measurements/air.utah.edu')
 
-source('air.utah.edu/_render_flex.r')
+source('_render_flex.r')
 render_flex('_flexdashboard/status.Rmd')
 render_flex('_flexdashboard/historic-co2.Rmd')
 

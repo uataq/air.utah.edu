@@ -135,3 +135,13 @@ a:active {
   .mobileHide { display: none; }
   .mobileShow { display: inline; }
 }
+
+.content-page {
+  max-width: 700px;
+  margin: 40px 15px;
+}
+@media only screen and (min-width: 700px) {
+  .content-page {
+    margin: 40px auto;
+  }
+}

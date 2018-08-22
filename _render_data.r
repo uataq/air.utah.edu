@@ -1,11 +1,11 @@
 # Ben Fasoli
 # Process data for website render
-setwd('/uufs/chpc.utah.edu/common/home/lin-group2/measurements-beta')
+setwd('/uufs/chpc.utah.edu/common/home/lin-group2/measurements')
 
 library(data.table)
 library(fasttime)
 
-source('proc/_global.r')
+source('pipeline/_global.r')
 
 # Determine site list
 stids <- site_config$stid[site_config$active]

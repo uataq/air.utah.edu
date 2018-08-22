@@ -38,7 +38,7 @@ last_process <- strftime(max(data$Time_UTC, na.rm = T), tz = 'America/Denver',
                          '%b %d %I:%M %p %Z')
 
 # Read site metadata
-site_config <- fread('../proc/config/site_config.csv')
+site_config <- fread('../pipeline/config/site_config.csv')
 
 # Merge metadata with last record for each site
 map_data <- inner_join(select(data, stid, Time_UTC, CO2d_ppm, CH4d_ppm),

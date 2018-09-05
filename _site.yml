@@ -1,8 +1,7 @@
 name: uataq
 include:
-- historic-co2.html
-- status.html
 - favicon.ico
+- _data.rds
 output:
   html_document:
     css: styles.css

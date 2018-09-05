@@ -48,7 +48,7 @@ data$trx <- rbindlist(lapply(trx_stids, function(stid) {
                select = c('Time_UTC', 'Lati_deg', 'Long_deg'))
   gps$Time_UTC <- fastPOSIXct(gps$Time_UTC, tz = 'UTC')
   gps <- gps %>%
-    filter(Time_UTC > Sys.time() - 100*7200) %>%
+    filter(Time_UTC > Sys.time() - 7200) %>%
     mutate(Time_UTC = as.POSIXct(trunc(Time_UTC, 'secs'))) %>%
     rename(lati = Lati_deg, long = Long_deg) %>%
     mutate(long = -long)  # TODO: ensure longitude is negative in trx processing
@@ -57,9 +57,8 @@ data$trx <- rbindlist(lapply(trx_stids, function(stid) {
                       select = c(1, 6, 7, 13, 14))
     lgr_ugga$Time_UTC <- fastPOSIXct(lgr_ugga$Time_UTC, tz = 'UTC')
     lgr_ugga <- lgr_ugga %>% 
-      filter(Time_UTC > Sys.time() - 7200,#100*7200,
+      filter(Time_UTC > Sys.time() - 7200,
              ID_CO2 == -10) %>%
-      # tail(10000) %>%
       mutate(Time_UTC = as.POSIXct(trunc(Time_UTC, 'secs'))) %>%
       dplyr::select(-ID_CO2, -QAQC_Flag)
   }
@@ -76,7 +75,7 @@ data$trx <- rbindlist(lapply(trx_stids, function(stid) {
 data$qaqc$Time_UTC <- fastPOSIXct(data$qaqc$Time_UTC, tz = 'UTC')
 data$calibrated$Time_UTC <- fastPOSIXct(data$calibrated$Time_UTC, tz = 'UTC')
 
-# Filter by recent (< 10 days) data
+# Filter by recent data
 time_start <- Sys.time() - 10 * 86400
 data$qaqc <- data$qaqc[data$qaqc$Time_UTC > time_start]
 data$calibrated <- data$calibrated[data$calibrated$Time_UTC > time_start]

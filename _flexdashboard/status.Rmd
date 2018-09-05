@@ -10,246 +10,17 @@ library(tidyverse)
 
 data <- readRDS('../_data.rds')
 
-colors <- c('#1BB065', '#F9E332', '#E49820', '#E1401D', '#EF3E36',
-            '#3DCCC7', '#B7B868', '#6B818C', '#76F7BF', '#381D2A',
-            '#3E6990')
+colors <- c('#323031', '#413C58', '#6B818C', '#3DCCC7', '#76F7BF',
+            '#C4B7CB', '#1BB065', '#BCE784', '#F9E332', '#E49820',
+            '#FF8360', '#E1401D')
 
 rmse <- function(e) sqrt(mean(e^2, na.rm = T))
 ```
 
-Row {.tabset data-height=600}
-------------------------------------------------------------------------------------------
-
-### 10-day Calibrated CO<sub>2</sub>
-```{r}
-pd <- data$calibrated %>%
-  filter(ID_CO2 == -10) %>%
-  group_by(Time_UTC = as.POSIXct(trunc(Time_UTC, 'hours')),
-           stid) %>%
-  summarize_all(funs(mean(., na.rm = T))) %>%
-  ungroup()
-attributes(pd$Time_UTC)$tzone <- 'America/Denver'
-subplot(
-  plot_ly(pd, x = ~Time_UTC, y = ~CO2d_ppm_cal, color = ~stid,
-          type = 'scatter', mode = 'lines+markers', colors = colors) %>%
-    layout(xaxis = list(title = NA),
-           yaxis = list(title = 'CO2 (ppm)'),
-           showlegend = F),
-  plot_ly(pd, x = ~Time_UTC, y = ~CO2d_rmse, color = ~stid,
-          type = 'scatter', mode = 'lines', colors = colors) %>%
-    layout(xaxis = list(title = NA),
-           yaxis = list(title = 'RMSE'),
-           showlegend = F),
-  plot_ly(pd, x = ~Time_UTC, y = ~abs(CO2d_ppm_cal - CO2d_ppm_meas), color = ~stid,
-          type = 'scatter', mode = 'lines', colors = colors) %>%
-    layout(xaxis = list(title = NA),
-           yaxis = list(title = 'Correction'),
-           showlegend = F),
-  plot_ly(pd, x = ~Time_UTC, y = ~CO2d_m, color = ~stid,
-          type = 'scatter', mode = 'lines', colors = colors) %>%
-    layout(xaxis = list(title = NA),
-           yaxis = list(title = 'm'),
-           showlegend = F),
-  plot_ly(pd, x = ~Time_UTC, y = ~CO2d_b, color = ~stid,
-          type = 'scatter', mode = 'lines', colors = colors) %>%
-    layout(xaxis = list(title = 'Mountain Time'),
-           yaxis = list(title = 'b'),
-           showlegend = F),
-  nrows = 5, heights = c(0.4, 0.15, 0.15, 0.15, 0.15), shareX = T, titleX = T, titleY = T
-)
-```
-
-### 10-day Calibrated CH<sub>4</sub>
-```{r}
-subplot(
-  plot_ly(pd, x = ~Time_UTC, y = ~CH4d_ppm_cal, color = ~stid,
-          type = 'scatter', mode = 'lines+markers', colors = colors) %>%
-    layout(xaxis = list(title = NA),
-           yaxis = list(title = 'CH4 (ppm)'),
-           showlegend = F),
-  plot_ly(pd, x = ~Time_UTC, y = ~CH4d_rmse, color = ~stid,
-          type = 'scatter', mode = 'lines', colors = colors) %>%
-    layout(xaxis = list(title = NA),
-           yaxis = list(title = 'RMSE'),
-           showlegend = F),
-  plot_ly(pd, x = ~Time_UTC, y = ~abs(CH4d_ppm_cal - CH4d_ppm_meas), color = ~stid,
-          type = 'scatter', mode = 'lines', colors = colors) %>%
-    layout(xaxis = list(title = NA),
-           yaxis = list(title = 'Correction'),
-           showlegend = F),
-  plot_ly(pd, x = ~Time_UTC, y = ~CH4d_m, color = ~stid,
-          type = 'scatter', mode = 'lines', colors = colors) %>%
-    layout(xaxis = list(title = NA),
-           yaxis = list(title = 'm'),
-           showlegend = F),
-  plot_ly(pd, x = ~Time_UTC, y = ~CH4d_b, color = ~stid,
-          type = 'scatter', mode = 'lines', colors = colors) %>%
-    layout(xaxis = list(title = 'Mountain Time'),
-           yaxis = list(title = 'b'),
-           showlegend = F),
-  nrows = 5, heights = c(0.4, 0.15, 0.15, 0.15, 0.15), shareX = T, titleX = T, titleY = T
-)
-```
-
-### 10-day H<sub>2</sub>O
-
-```{r}
-pd <- data$qaqc %>%
-  filter(ID_CO2 == -10) %>%
-  group_by(Time_UTC = as.POSIXct(trunc(Time_UTC, 'hours')),
-           stid) %>%
-  summarize(H2O_ppm_avg = mean(H2O_ppm, na.rm = T),
-            H2O_ppm_sd = sd(H2O_ppm, na.rm = T)) %>%
-  ungroup()
-attributes(pd$Time_UTC)$tzone <- 'America/Denver'
-subplot(
-  plot_ly(pd, x = ~Time_UTC, y = ~H2O_ppm_avg, color = ~stid,
-          type = 'scatter', mode = 'lines+markers', colors = colors) %>%
-    layout(xaxis = list(title = NA),
-           yaxis = list(title = 'H2O (ppm)'),
-           showlegend = F),
-  plot_ly(pd, x = ~Time_UTC, y = ~H2O_ppm_sd, color = ~stid,
-          type = 'scatter', mode = 'lines+markers', colors = colors) %>%
-    layout(xaxis = list(title = 'Mountain Time'),
-           yaxis = list(title = 'SD (ppm)'),
-           showlegend = F),
-  heights = c(0.6, 0.4), nrows = 2, shareX = T, titleX = T, titleY = T)
-```
-
-
 Row
 ------------------------------------------------------------------------------------------
 
-### Reference Tank Measurements  <span style="float:right;"><a href="/s/view/diagnostics/"><i class="fa fa-bar-chart"></i> Timeseries Diagnostics</a></span>
-```{r}
-pd <- data$qaqc %>%
-  filter(Time_UTC >= Sys.time() - 86400,
-         ID_CO2 > 0) %>%
-  mutate(label = paste(toupper(stid), ID_CO2, sep = '/'))
-pd_fits <- pd %>%
-  group_by(stid) %>%
-  do({
-    mod <- lm(CO2d_ppm ~ ID_CO2, data = .)
-    data.frame(
-      stid = .$stid[1],
-      x = min(.$ID_CO2),
-      xend = max(.$ID_CO2),
-      y = predict(mod, data.frame(ID_CO2 = min(.$ID_CO2))),
-      yend = predict(mod, data.frame(ID_CO2 = max(.$ID_CO2)))
-    )
-  }) %>%
-  ungroup()
-pd_error <- pd %>%
-  group_by(stid) %>%
-  summarize(`co2 err` = sd(CO2d_ppm - ID_CO2, na.rm = T),
-            `ch4 err`= sd(CH4d_ppm - ID_CH4, na.rm = T))
-subplot(
-  pd_error %>%
-    plot_ly(x = ~`co2 err`, y = ~stid, color = ~stid, type = 'bar', orientation = 'h',
-            colors = colors) %>%
-    layout(xaxis = list(title = 'Error', autorange = 'reversed'),
-           yaxis = list(title = NA, autorange = 'reversed'),
-           showlegend = F),
-  plot_ly(pd, x = ~ID_CO2, y = ~CO2d_ppm, color = ~stid,
-          type = 'scatter', mode = 'markers', colors = colors) %>%
-    add_segments(x = min(pd$CO2d_ppm), xend = max(pd$CO2d_ppm), 
-                 y = min(pd$CO2d_ppm), yend = max(pd$CO2d_ppm), 
-                 color = I('black'), opacity = 0.1, inherit = F, showlegend = F) %>%
-    add_segments(x = ~x, xend = ~xend, y = ~y, yend = ~yend, data = pd_fits,
-                 color = ~stid, colors = colors,
-                 inherit = F, opacity = 0.2) %>%
-    layout(xaxis = list(title = 'Known'),
-           yaxis = list(title = 'Measured'),
-           showlegend = F),
-  margin = 0.08, titleX = T, titleY = T, widths = c(0.25, 0.75)
-)
-```
-
-### Network Diagnostics <span style="float:right;"><a href="https://github.com/uataq/data-pipeline#qaqc-flagging-conventions"><i class="fa fa-bars"></i> QAQC Definitions</a></span>
-```{r}
-style <- formattable::style
-checkStyle <- icontext('ok')
-checkStyle[2] <- NULL
-errorStyle <- function(x, background.color = '#ED254E') {
-  if (x) {
-    return(
-      style(color = 'white', 
-            background.color = background.color,
-            border.radius = '5px',
-            display = 'block',
-            padding = '0 5px')
-    )
-  } else {
-    return(
-      style(margin = '0 5px')
-    )
-  }
-}
-list(
-  data$qaqc %>% 
-    group_by(stid) %>% 
-    summarize(`last data` = max(Time_UTC)),
-  # data$calibrated %>% 
-  #   group_by(stid) %>% 
-  #   summarize(`last cal` = max(Time_UTC)),
-  data$qaqc %>%
-    filter(ID_CO2 != -99,
-           Time_UTC > Sys.time() - 86400) %>%
-    group_by(stid) %>%
-    summarize(qaqc = paste(setdiff(unique(QAQC_Flag), c(-1, 0)), collapse = ',')),
-  data$qaqc %>% 
-    filter(ID_CO2 == -10, 
-           Time_UTC > Sys.time() - 86400) %>%
-    group_by(stid) %>%
-    summarize(`co2 ptp` = mean(abs(CO2d_ppm[2:n()] - CO2d_ppm[1:(n()-1)])),
-              `ch4 ptp` = mean(abs(CH4d_ppm[2:n()] - CH4d_ppm[1:(n()-1)]))),
-  pd_error
-) %>%
-  reduce(full_join, by = 'stid') %>%
-  select(stid, `last data`, qaqc, `co2 err`, `co2 ptp`, `ch4 err`, `ch4 ptp`) %>%
-  formattable(
-    list(
-      `last data` = formatter('span',
-                              style = x ~ ifelse(x < (Sys.time() - 2 * 3600),
-                                                 errorStyle(T), errorStyle(F)),
-                              x ~ format(x, tz = 'America/Denver', '%b %d %H:%M %Z')),
-      # `last cal` = formatter('span',
-      #                        style = x ~ ifelse(x < (Sys.time() - 6 * 3600),
-      #                                           errorStyle(T), errorStyle(F)),
-      #                        x ~ format(x, tz = 'America/Denver', '%b %d %H:%M')),
-      qaqc = formatter('span',
-                       style = x ~ ifelse(nchar(x) < 1 | is.na(x),
-                                          style(color = '#8FD694'),
-                                          errorStyle(T)),
-                       x ~ ifelse(nchar(x) < 1 | is.na(x), 
-                                  checkStyle, x)),
-      `co2 err` = formatter('span',
-                            style = x ~ ifelse(x < 2 | is.na(x),
-                                               errorStyle(F), errorStyle(T)),
-                            x ~ ifelse(is.na(x), '-', signif(x, 2))),
-      `co2 ptp` = formatter('span',
-                            style = x ~ ifelse(x < 2 | is.na(x),
-                                               errorStyle(F), 
-                                               errorStyle(T, '#FFB20F')),
-                            x ~ ifelse(is.na(x), '-', signif(x, 2))),
-      `ch4 err` = formatter('span',
-                            style = x ~ ifelse(x < 0.02 | is.na(x),
-                                               errorStyle(F), errorStyle(T)),
-                            x ~ ifelse(is.na(x), '-', signif(x, 2))),
-      `ch4 ptp` = formatter('span',
-                            style = x ~ ifelse(x < 0.01 | is.na(x),
-                                               errorStyle(F), 
-                                               errorStyle(T, '#FFB20F')),
-                            x ~ ifelse(is.na(x), '-', signif(x, 2)))
-    )
-  )
-```
-
-
-Row {data-height=500}
-------------------------------------------------------------------------------------------
-
-### Average Diel Cycle
+### Average Diel Cycle <span style="float:right;"><a href="/s/diagnostics/"><i class="fa fa-bar-chart"></i> Timeseries Diagnostics</a></span>
 ```{r}
 subplot(
   data$calibrated %>%
@@ -289,11 +60,255 @@ subplot(
 )
 ```
 
-### Instrument Flow Rates
-```{r, message=FALSE, warning=FALSE}
-pd <- data$qaqc %>%
-  filter(Time_UTC > Sys.time() - 12 * 3600) %>%
-  group_by(Time_UTC = as.POSIXct(trunc(Time_UTC, 'mins')),
+### Network Diagnostics <span style="float:right;"><a href="https://github.com/uataq/data-pipeline#qaqc-flagging-conventions"><i class="fa fa-bars"></i> QAQC Definitions</a></span>
+```{r}
+pd_ref <- data$qaqc %>%
+  filter(Time_UTC >= Sys.time() - 86400,
+         ID_CO2 > 0) %>%
+  mutate(label = paste(toupper(stid), ID_CO2, sep = '/'))
+pd_ref_error <- pd_ref %>%
+  group_by(stid) %>%
+  summarize(`co2 err` = sd(CO2d_ppm - ID_CO2, na.rm = T),
+            `ch4 err` = sd(CH4d_ppm - ID_CH4, na.rm = T))
+style <- formattable::style
+checkStyle <- icontext('ok')
+checkStyle[2] <- NULL
+errorStyle <- function(x, background.color = '#ED254E') {
+  if (x) {
+    return(
+      style(color = 'white', 
+            background.color = background.color,
+            border.radius = '5px',
+            display = 'block',
+            padding = '0 5px')
+    )
+  } else {
+    return(
+      style(margin = '0 5px')
+    )
+  }
+}
+list(
+  data$qaqc %>% 
+    group_by(stid) %>% 
+    summarize(`last data` = max(Time_UTC)),
+  data$qaqc %>%
+    filter(ID_CO2 != -99,
+           Time_UTC > Sys.time() - 86400) %>%
+    group_by(stid) %>%
+    summarize(qaqc = paste(setdiff(unique(QAQC_Flag), c(-1, 0)), collapse = ',')),
+  data$qaqc %>% 
+    filter(ID_CO2 == -10, 
+           Time_UTC > Sys.time() - 86400) %>%
+    group_by(stid) %>%
+    summarize(`co2 ptp` = mean(abs(CO2d_ppm[2:n()] - CO2d_ppm[1:(n()-1)])),
+              `ch4 ptp` = mean(abs(CH4d_ppm[2:n()] - CH4d_ppm[1:(n()-1)]))),
+  pd_ref_error
+) %>%
+  reduce(full_join, by = 'stid') %>%
+  select(stid, `last data`, qaqc, `co2 err`, `co2 ptp`, `ch4 err`, `ch4 ptp`) %>%
+  formattable(
+    list(
+      `last data` = formatter('span',
+                              style = x ~ ifelse(x < (Sys.time() - 2 * 3600),
+                                                 errorStyle(T), errorStyle(F)),
+                              x ~ format(x, tz = 'America/Denver', '%b %d %H:%M %Z')),
+      qaqc = formatter('span',
+                       style = x ~ ifelse(nchar(x) < 1 | is.na(x),
+                                          style(color = '#8FD694'),
+                                          errorStyle(T)),
+                       x ~ ifelse(nchar(x) < 1 | is.na(x), 
+                                  checkStyle, x)),
+      `co2 err` = formatter('span',
+                            style = x ~ ifelse(x < 3 | is.na(x),
+                                               errorStyle(F), errorStyle(T)),
+                            x ~ ifelse(is.na(x), '-', signif(x, 2))),
+      `co2 ptp` = formatter('span',
+                            style = x ~ ifelse(x < 2 | is.na(x),
+                                               errorStyle(F), 
+                                               errorStyle(T, '#FFB20F')),
+                            x ~ ifelse(is.na(x), '-', signif(x, 2))),
+      `ch4 err` = formatter('span',
+                            style = x ~ ifelse(x < 0.03 | is.na(x),
+                                               errorStyle(F), errorStyle(T)),
+                            x ~ ifelse(is.na(x), '-', signif(x, 2))),
+      `ch4 ptp` = formatter('span',
+                            style = x ~ ifelse(x < 0.01 | is.na(x),
+                                               errorStyle(F), 
+                                               errorStyle(T, '#FFB20F')),
+                            x ~ ifelse(is.na(x), '-', signif(x, 2)))
+    )
+  )
+```
+
+
+Row {.tabset data-height=600}
+------------------------------------------------------------------------------------------
+
+### CO<sub>2</sub> Calibrations
+```{r}
+pd <- data$calibrated %>%
+  filter(ID_CO2 == -10) %>%
+  group_by(Time_UTC = as.POSIXct(trunc(Time_UTC, 'hours')),
+           stid) %>%
+  summarize_all(funs(mean(., na.rm = T))) %>%
+  ungroup()
+attributes(pd$Time_UTC)$tzone <- 'America/Denver'
+pd_ref_fits <- pd_ref %>%
+  group_by(stid) %>%
+  do({
+    mod <- lm(CO2d_ppm ~ ID_CO2, data = .)
+    data.frame(
+      stid = .$stid[1],
+      x = min(.$ID_CO2),
+      xend = max(.$ID_CO2),
+      y = predict(mod, data.frame(ID_CO2 = min(.$ID_CO2))),
+      yend = predict(mod, data.frame(ID_CO2 = max(.$ID_CO2)))
+    )
+  }) %>%
+  ungroup()
+
+subplot(
+  subplot(
+    plot_ly(pd, x = ~Time_UTC, y = ~CO2d_ppm_cal, color = ~stid,
+            type = 'scatter', mode = 'lines+markers', colors = colors) %>%
+      layout(xaxis = list(title = NA),
+             yaxis = list(title = 'CO2 (ppm)'),
+             showlegend = F),
+    plot_ly(pd, x = ~Time_UTC, y = ~CO2d_rmse, color = ~stid,
+            type = 'scatter', mode = 'lines', colors = colors) %>%
+      layout(xaxis = list(title = NA),
+             yaxis = list(title = 'RMSE'),
+             showlegend = F),
+    plot_ly(pd, x = ~Time_UTC, y = ~abs(CO2d_ppm_cal - CO2d_ppm_meas), color = ~stid,
+            type = 'scatter', mode = 'lines', colors = colors) %>%
+      layout(xaxis = list(title = NA),
+             yaxis = list(title = 'Correction'),
+             showlegend = F),
+    plot_ly(pd, x = ~Time_UTC, y = ~CO2d_m, color = ~stid,
+            type = 'scatter', mode = 'lines', colors = colors) %>%
+      layout(xaxis = list(title = NA),
+             yaxis = list(title = 'm'),
+             showlegend = F),
+    plot_ly(pd, x = ~Time_UTC, y = ~CO2d_b, color = ~stid,
+            type = 'scatter', mode = 'lines', colors = colors) %>%
+      layout(xaxis = list(title = NA),
+             yaxis = list(title = 'b'),
+             showlegend = F),
+    nrows = 5, heights = c(0.4, 0.15, 0.15, 0.15, 0.15), 
+    shareX = T, titleX = T, titleY = T
+  ),
+  subplot(
+    plot_ly(pd_ref, x = ~ID_CO2, y = ~CO2d_ppm, color = ~stid,
+            type = 'scatter', mode = 'markers', colors = colors) %>%
+      add_segments(x = min(pd_ref$CO2d_ppm), xend = max(pd_ref$CO2d_ppm), 
+                   y = min(pd_ref$CO2d_ppm), yend = max(pd_ref$CO2d_ppm), 
+                   color = I('black'), opacity = 0.1, inherit = F, showlegend = F) %>%
+      add_segments(x = ~x, xend = ~xend, y = ~y, yend = ~yend, data = pd_ref_fits,
+                   color = ~stid, colors = colors,
+                   inherit = F, opacity = 0.2) %>%
+      layout(xaxis = list(title = 'Known'),
+             yaxis = list(title = 'Measured'),
+             showlegend = F),
+        pd_ref_error %>%
+      plot_ly(x = ~stid, y = ~`co2 err`, color = ~stid, type = 'bar',
+              colors = colors) %>%
+      layout(xaxis = list(title = NA),
+             yaxis = list(title = 'Reference Error'),
+             showlegend = F),
+    nrows = 2,
+    margin = 0.08, titleX = T, titleY = T, heights = c(0.75, 0.25)
+  ),
+  margin = 0.03, titleX = T, titleY = T, widths = c(0.6, 0.4)
+)
+```
+
+### CH<sub>4</sub> Calibrations
+```{r}
+pd_ref <- filter(pd_ref, !is.na(ID_CH4))
+pd_ref_error <- filter(pd_ref_error, !is.na(`ch4 err`))
+pd_ref_fits <- pd_ref %>%
+  group_by(stid) %>%
+  do({
+    mod <- lm(CH4d_ppm ~ ID_CH4, data = .)
+    data.frame(
+      stid = .$stid[1],
+      x = min(.$ID_CH4),
+      xend = max(.$ID_CH4),
+      y = predict(mod, data.frame(ID_CH4 = min(.$ID_CH4))),
+      yend = predict(mod, data.frame(ID_CH4 = max(.$ID_CH4)))
+    )
+  }) %>%
+  ungroup()
+
+subplot(
+  subplot(
+    plot_ly(pd, x = ~Time_UTC, y = ~CH4d_ppm_cal, color = ~stid,
+            type = 'scatter', mode = 'lines+markers', colors = colors) %>%
+      layout(xaxis = list(title = NA),
+             yaxis = list(title = 'CH4 (ppm)'),
+             showlegend = F),
+    plot_ly(pd, x = ~Time_UTC, y = ~CH4d_rmse, color = ~stid,
+            type = 'scatter', mode = 'lines', colors = colors) %>%
+      layout(xaxis = list(title = NA),
+             yaxis = list(title = 'RMSE'),
+             showlegend = F),
+    plot_ly(pd, x = ~Time_UTC, y = ~abs(CH4d_ppm_cal - CH4d_ppm_meas), color = ~stid,
+            type = 'scatter', mode = 'lines', colors = colors) %>%
+      layout(xaxis = list(title = NA),
+             yaxis = list(title = 'Correction'),
+             showlegend = F),
+    plot_ly(pd, x = ~Time_UTC, y = ~CH4d_m, color = ~stid,
+            type = 'scatter', mode = 'lines', colors = colors) %>%
+      layout(xaxis = list(title = NA),
+             yaxis = list(title = 'm'),
+             showlegend = F),
+    plot_ly(pd, x = ~Time_UTC, y = ~CH4d_b, color = ~stid,
+            type = 'scatter', mode = 'lines', colors = colors) %>%
+      layout(xaxis = list(title = NA),
+             yaxis = list(title = 'b'),
+             showlegend = F),
+    nrows = 5, heights = c(0.4, 0.15, 0.15, 0.15, 0.15), 
+    shareX = T, titleX = T, titleY = T
+  ),
+  subplot(
+    plot_ly(pd_ref, x = ~ID_CH4, y = ~CH4d_ppm, color = ~stid,
+            type = 'scatter', mode = 'markers', colors = colors) %>%
+      add_segments(x = min(pd_ref$CH4d_ppm), xend = max(pd_ref$CH4d_ppm), 
+                   y = min(pd_ref$CH4d_ppm), yend = max(pd_ref$CH4d_ppm), 
+                   color = I('black'), opacity = 0.1, inherit = F, showlegend = F) %>%
+      add_segments(x = ~x, xend = ~xend, y = ~y, yend = ~yend, data = pd_ref_fits,
+                   color = ~stid, colors = colors,
+                   inherit = F, opacity = 0.2) %>%
+      layout(xaxis = list(title = 'Known'),
+             yaxis = list(title = 'Measured'),
+             showlegend = F),
+        pd_ref_error %>%
+      plot_ly(x = ~stid, y = ~`ch4 err`, color = ~stid, type = 'bar',
+              colors = colors) %>%
+      layout(xaxis = list(title = NA),
+             yaxis = list(title = 'Reference Error'),
+             showlegend = F),
+    nrows = 2,
+    margin = 0.08, titleX = T, titleY = T, heights = c(0.75, 0.25)
+  ),
+  margin = 0.03, titleX = T, titleY = T, widths = c(0.6, 0.4)
+)
+```
+
+### Instrument Diagnostics
+
+```{r}
+pd_h2o <- data$qaqc %>%
+  filter(ID_CO2 == -10) %>%
+  group_by(Time_UTC = as.POSIXct(trunc(Time_UTC, 'hours')),
+           stid) %>%
+  summarize(H2O_ppm_avg = mean(H2O_ppm, na.rm = T),
+            H2O_ppm_sd = sd(H2O_ppm, na.rm = T)) %>%
+  ungroup()
+attributes(pd_h2o$Time_UTC)$tzone <- 'America/Denver'
+pd_flow <- data$qaqc %>%
+  group_by(Time_UTC = as.POSIXct(trunc(Time_UTC, 'hours')),
            stid) %>%
   summarize_all(funs(mean(., na.rm = T))) %>%
   ungroup() %>%
@@ -302,15 +317,20 @@ pd <- data$qaqc %>%
   na.omit() %>%
   mutate(ideal = ifelse(key == 'Flow_mLmin', 400, 140),
          flow_error = 100 * (value - ideal) / ideal)
-attributes(pd$Time_UTC)$tzone <- 'America/Denver'
+attributes(pd_flow$Time_UTC)$tzone <- 'America/Denver'
 subplot(
-  plot_ly(filter(pd, ID_CO2 == -10),
+  plot_ly(pd_h2o, x = ~Time_UTC, y = ~H2O_ppm_avg, color = ~stid,
+          type = 'scatter', mode = 'lines+markers', colors = colors) %>%
+    layout(xaxis = list(title = NA),
+           yaxis = list(title = 'H2O (ppm)'),
+           showlegend = F),
+plot_ly(filter(pd_flow, ID_CO2 == -10),
           x = ~Time_UTC, y = ~flow_error, color = ~stid,
           type = 'scatter', mode = 'lines', colors = colors) %>%
     layout(xaxis = list(title = NA),
            yaxis = list(title = 'Atmosphere\n% Flow Error'),
            showlegend = F),
-  plot_ly(filter(pd, ID_CO2 > 0),
+  plot_ly(filter(pd_flow, ID_CO2 > 0),
           x = ~Time_UTC, y = ~flow_error, color = ~stid,
           type = 'scatter', mode = 'markers', colors = colors,
           marker = list(size = 15,
@@ -320,6 +340,14 @@ subplot(
     layout(xaxis = list(title = 'Mountain Time'),
            yaxis = list(title = 'References\n% Flow Error'),
            showlegend = F),
-  nrows = 2, shareX = T, titleX = T, titleY = T
-)
+  heights = c(0.5, 0.25, 0.25), nrows = 3, shareX = T, titleX = T, titleY = T)
+```
+
+### Pipeline Log
+
+```{r}
+log_files <- dir('../../pipeline/log', full.names = T)
+log_content <- sapply(log_files, readLines)
+names(log_content) <- tools::file_path_sans_ext(basename(names(log_content)))
+log_content
 ```

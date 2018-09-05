@@ -1,5 +1,6 @@
 .navbar-inverse {
   background-color: #222222;
+  border-color: #222222;
   font-family: "Source Sans Pro", Calibri, Candara, Arial, sans-serif;
   font-size: 15px;
   -webkit-font-smoothing: antialiased;
@@ -49,6 +50,14 @@
   border-top-color: #c3252c;
 }
 
+/* ensure text dumps are scrollable */
+#pipeline-log > div.chart-stage.chart-stage-flex,
+#pipeline-log > div.chart-stage.chart-stage-flex > div > pre {
+  background: transparent;
+  border: none;
+  overflow: scroll;
+}
+
 .navbar-toggle {
   background-color: transparent;
   border: none;
@@ -78,12 +87,23 @@ a:active {
   padding-bottom: 50px;
 }
 
+.leaflet-popup-content {
+  margin-top: 15px;
+}
 .leaflet-popup-content > a > button {
   margin-top: 7px;
 }
 
 .leaflet-popup-content-wrapper {
-  min-width: 200px;
+  min-width: 215px;
+}
+
+.leaflet-popup-diagnostic-button {
+  position: absolute;
+  right: 21px;
+  top: 5px;
+  font-size: 11px;
+  color: #dedee2 !important;
 }
 
 /* hide rmarkdown titles */

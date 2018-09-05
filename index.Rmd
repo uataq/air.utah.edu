@@ -58,8 +58,12 @@ map_data$radius <- ifelse(map_data$is_fixed, 16, 5)
 map_data$stroke_weight <- ifelse(map_data$is_fixed, 2, 1)
 
 # Define URL for popup link
-map_data$url <- paste0('https://air.utah.edu/s/view/meas/?site_id=', map_data$stid)
-map_data$url[grepl('trx', map_data$stid)] <- 'http://air.utah.edu/s/view/trax/'
+map_data$url <- paste0('https://air.utah.edu/s/measurements/?_inputs_&stid=%22',
+                       map_data$stid, '%22&submit=1')
+map_data$durl <- paste0('https://air.utah.edu/s/diagnostics/?_inputs_&stid=%22',
+                        map_data$stid, '%22')
+map_data$url[grepl('trx', map_data$stid)] <- 'https://air.utah.edu/s/measurements/'
+map_data$durl[grepl('trx', map_data$stid)] <- 'https://air.utah.edu/s/diagnostics/'
 map_data$popup <- paste0(
   '<b>', map_data$name, '</b>', ' (', toupper(map_data$stid), ')<br>',
   strftime(data$Time_UTC, tz = 'America/Denver', format = '%b %d %I:%M %p %Z<br>'),
@@ -67,8 +71,12 @@ map_data$popup <- paste0(
          paste0('CO<sub>2</sub>&emsp;<b>', map_data$CO2d_ppm, ' ppm</b><br>')),
   ifelse(is.na(map_data$CH4d_ppm), '',
          paste0('CH<sub>4</sub>&emsp;<b>', map_data$CH4d_ppm, ' ppm</b><br>')),
-  '<a target="_blank" href="', map_data$url, '"><button class="btn btn-danger btn-block">',
-  '<i class="fa fa-line-chart"></i> Go to the data!</button></a>'
+  '<a target="_blank" href="', map_data$url, '">',
+  '<button class="btn btn-danger btn-block">',
+  '<i class="fa fa-line-chart"></i> Go to the data!',
+  '</button></a>',
+  '<a class="leaflet-popup-diagnostic-button" target="_blank" href="', 
+  map_data$durl, '"><i class="fa fa-flask"></i></a>'
 )
 
 # Initialize map
@@ -76,14 +84,14 @@ map <- leaflet(data = map_data, width = '100%', height = '100%',
                options = leafletOptions(
                  maxZoom = 13
                )) %>%
-  addTiles('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
+  addTiles('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
            attribution = paste(sep = ' | ',
                                'Ben Fasoli',
                                'Map data &copy; CartoDB/Esri',
                                strftime(max(data$Time_UTC, na.rm = T), 
                                         tz = 'America/Denver',
                                         format = '%b %d %I:%M %p %Z'))) %>%
-  addTiles(paste0('http://server.arcgisonline.com/ArcGIS/rest/services/',
+  addTiles(paste0('https://server.arcgisonline.com/ArcGIS/rest/services/',
                   'World_Terrain_Base/MapServer/tile/{z}/{y}/{x}'),
            options = tileOptions(opacity = 0.2)) %>%
   addLayersControl(
@@ -125,10 +133,10 @@ map
 
 <div class="mobileHide" style="position:fixed; left: 5px; bottom: 5px; text-align: center;">
 <a href="http://sustainability.utah.edu">
-<img src="http://air.utah.edu/~benfasoli/img/SCIF_logo.png" style="width: 130px;">
+<img src="https://air.utah.edu/~benfasoli/img/SCIF_logo.png" style="width: 130px;">
 </a>
 <a href="http://lair.utah.edu">
-<img src="http://air.utah.edu/~benfasoli/img/LAIR_logo.png" style="width: 250px;">
+<img src="https://air.utah.edu/~benfasoli/img/LAIR_logo.png" style="width: 250px;">
 </a>
 </div>
 

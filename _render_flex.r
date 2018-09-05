@@ -11,6 +11,7 @@ render_flex <- function(src, ...) {
                                    '../_includes/head_refresh.html')
                    ),
                    orientation = 'rows',
+                   self_contained = F,
                    vertical_layout = 'scroll'
                  ), ...
   )

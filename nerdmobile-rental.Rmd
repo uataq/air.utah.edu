@@ -1,0 +1,23 @@
+---
+title: Nerdmobile Rental
+output:
+  html_document:
+    includes:
+      in_header: _includes/head.html
+---
+
+<div class="content-page">
+
+### Nerdmobile rental
+
+U-ATAQ offers the use of its Mobile Atmospheric Laboratory service for on-campus users in all departments at the University of Utah.  This vehicle can be used for mobile or stationary measurement of CO<sub>2</sub>, CH<sub>4</sub>, H<sub>2</sub>O, PM<sub>2.5</sub>, O<sub>3</sub>, NO, NO<sub>2</sub>, meteorological conditions as well as atmospheric flask collections.  Equipment owned by the user can also be incorporated in the vehicle during rental to complement the existing measurement suite.  Geo-located and calibrated datasets will be provided as the final product. Fees are determined as a combined per mile and per day use. A valid drivers license and the completion of the State of Utah’s driver training program required to rent the Mobile Atmospheric Lab. For rental scheduling or questions contact Ryan Bares at Ryan.Bares@utah.edu or at (435) 881-5638.
+
+<img src="https://air.utah.edu/~benfasoli/img/nerdmobile.png" width="100%"/>
+
+### Pricing
+
+Service | University daily rate | University mileage rate
+--------|-----------------------|------------------------------
+Mobile lab rental | $96.64 | $0.15
+
+</div>

@@ -1,7 +1,7 @@
 name: uataq
 include:
-- favicon.ico
-- _data.rds
+  - favicon.ico
+  - _data.rds
 output:
   html_document:
     css: styles.css

@@ -1,9 +1,13 @@
-.navbar-inverse {
-  background-color: #222222;
-  border-color: #222222;
-  font-family: "Source Sans Pro", Calibri, Candara, Arial, sans-serif;
-  font-size: 15px;
+body {
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a:link,
+a:visited,
+a:hover,
+a:active {
+  color: #c3252c;
 }
 
 .navbar-brand {
@@ -11,11 +15,25 @@
   font-weight: bold;
 }
 
+.navbar-inverse {
+  background-color: #222222;
+  border-color: #222222;
+  font-family: "Source Sans Pro", Calibri, Candara, Arial, sans-serif; 
+  font-size: 15px;
+}
+
+.navbar-toggle {
+  background-color: transparent;
+  border: none;
+}
+
+/* ensure navbar doesn't show borders or other artifacts on other devices*/
 #airnav {
   background: transparent;
   border: none;
 }
 
+/* set color of items in navbar */
 #airnav > ul > li,
 #airnav > ul > li > a,
 .mobileHide,
@@ -25,18 +43,20 @@
   line-height: 21px;
 }
 
+/* sizing icons in navbar */
 #airnav > ul.nav.navbar-nav.navbar-right > li > a > i {
   font-size: 13px;
 }
 
-/* navbar menu color on mouse hover */
+/* navbar dropdown menu mouse hover */
 .dropdown-menu > li > a:hover,
 .dropdown-menu > li > a:focus {
   color: #000000;
   text-decoration: none;
   background-color: #F8F8F8;
 }
-/* navbar menu active color */
+
+/* navbar dropdown menu hover color */
 .dropdown-menu > .active > a,
 .dropdown-menu > .active > a:hover,
 .dropdown-menu > .active > a:focus {
@@ -45,40 +65,42 @@
   outline: 0;
   background-color: #E8E8E8;
 }
-/* nav tabs*/
+
+/* hide rmarkdown produced titles */
+#header {
+  visibility: hidden;
+  position: absolute;
+  top: -9999px;
+}
+
+/* nav tab color for tabpanels */
 .nav-tabs-custom > .nav-tabs > li.active {
   border-top-color: #c3252c;
 }
 
-/* ensure text dumps are scrollable */
-#pipeline-log > div.chart-stage.chart-stage-flex,
-#pipeline-log > div.chart-stage.chart-stage-flex > div > pre {
+/* ensure process log dump is scrollable */
+#log > div.chart-stage.chart-stage-flex,
+#log > div.chart-stage.chart-stage-flex > div > pre {
   background: transparent;
   border: none;
   overflow: scroll;
 }
-
-.navbar-toggle {
-  background-color: transparent;
-  border: none;
+#log > div.chart-stage.chart-stage-flex > div > pre > code {
+  display:block;
 }
 
-/* link color */
-a:link,
-a:visited,
-a:hover,
-a:active {
-  color: #c3252c;
-}
-
-.leaflet-control-zoom-in,
-.leaflet-control-zoom-out {
-  color: #000000 !important;
+.leaflet-control {
+  border: 1px solid rgba(0,0,0,0.1) !important;
 }
 
 .leaflet-control-layers {
   padding-left: 15px;
   padding-right: 15px;
+}
+
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+  color: #000000 !important;
 }
 
 .leaflet-control-layers-list::before {
@@ -88,13 +110,16 @@ a:active {
 }
 
 .leaflet-popup-content {
+  margin: 10px;
   margin-top: 15px;
 }
+
 .leaflet-popup-content > a > button {
   margin-top: 7px;
 }
 
 .leaflet-popup-content-wrapper {
+  border-radius: 5px;
   min-width: 215px;
 }
 
@@ -104,13 +129,6 @@ a:active {
   top: 5px;
   font-size: 11px;
   color: #dedee2 !important;
-}
-
-/* hide rmarkdown titles */
-#header {
-  visibility: hidden;
-  position: absolute;
-  top: -9999px;
 }
 
 /* map positioning below navbar */
@@ -144,7 +162,7 @@ a:active {
   right: 5px;
 }
 
-/* hide on mobile browsers */
+/* custom responsive settings for mobile browsers */
 .mobileHide {
   display: inline;
 }

@@ -1,5 +1,12 @@
 ---
 title: "UATAQ Home"
+output:
+  html_document:
+    css: styles.css
+    includes:
+      in_header: 
+        - _includes/head.html
+        - _includes/head_refresh.html
 ---
 
 <div class="map">
@@ -42,14 +49,14 @@ last_process <- strftime(max(data$Time_UTC, na.rm = T), tz = 'America/Denver',
 site_config <- fread('../pipeline/config/site_config.csv')
 
 # Merge metadata with last record for each site
-map_data <- inner_join(select(data, stid, Time_UTC, CO2d_ppm, CH4d_ppm),
-                       select(site_config, stid, lati, long),
+map_data <- inner_join(dplyr::select(data, stid, Time_UTC, CO2d_ppm, CH4d_ppm),
+                       dplyr::select(site_config, stid, lati, long),
                        by = 'stid')
 
 # Merge mobile and fixed sites
 map_data <- bind_rows(map_data %>% mutate(is_fixed = T),
                       data_master$trx %>% mutate(is_fixed = F)) %>% 
-  inner_join(select(site_config, stid, name), by = 'stid') %>%
+  inner_join(dplyr::select(site_config, stid, name), by = 'stid') %>%
   mutate(CO2d_ppm = round(CO2d_ppm, 0),
          CH4d_ppm = round(CH4d_ppm, 1))
 

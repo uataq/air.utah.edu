@@ -106,7 +106,7 @@ list(
   pd_ref_error
 ) %>%
   reduce(full_join, by = 'stid') %>%
-  select(stid, `last data`, qaqc, `co2 err`, `co2 ptp`, `ch4 err`, `ch4 ptp`) %>%
+  dplyr::select(stid, `last data`, qaqc, `co2 err`, `co2 ptp`, `ch4 err`, `ch4 ptp`) %>%
   formattable(
     list(
       `last data` = formatter('span',
@@ -210,7 +210,7 @@ subplot(
       layout(xaxis = list(title = 'Known'),
              yaxis = list(title = 'Measured'),
              showlegend = F),
-        pd_ref_error %>%
+    pd_ref_error %>%
       plot_ly(x = ~stid, y = ~`co2 err`, color = ~stid, type = 'bar',
               colors = colors) %>%
       layout(xaxis = list(title = NA),
@@ -283,7 +283,7 @@ subplot(
       layout(xaxis = list(title = 'Known'),
              yaxis = list(title = 'Measured'),
              showlegend = F),
-        pd_ref_error %>%
+    pd_ref_error %>%
       plot_ly(x = ~stid, y = ~`ch4 err`, color = ~stid, type = 'bar',
               colors = colors) %>%
       layout(xaxis = list(title = NA),
@@ -312,7 +312,7 @@ pd_flow <- data$qaqc %>%
            stid) %>%
   summarize_all(funs(mean(., na.rm = T))) %>%
   ungroup() %>%
-  select(Time_UTC, QAQC_Flag, stid, ID_CO2, Flow_mLmin, Cavity_P_torr) %>%
+  dplyr::select(Time_UTC, QAQC_Flag, stid, ID_CO2, Flow_mLmin, Cavity_P_torr) %>%
   gather(key, value, -Time_UTC, -QAQC_Flag, -stid, -ID_CO2) %>%
   na.omit() %>%
   mutate(ideal = ifelse(key == 'Flow_mLmin', 400, 140),
@@ -324,7 +324,7 @@ subplot(
     layout(xaxis = list(title = NA),
            yaxis = list(title = 'H2O (ppm)'),
            showlegend = F),
-plot_ly(filter(pd_flow, ID_CO2 == -10),
+  plot_ly(filter(pd_flow, ID_CO2 == -10),
           x = ~Time_UTC, y = ~flow_error, color = ~stid,
           type = 'scatter', mode = 'lines', colors = colors) %>%
     layout(xaxis = list(title = NA),
@@ -343,11 +343,13 @@ plot_ly(filter(pd_flow, ID_CO2 == -10),
   heights = c(0.5, 0.25, 0.25), nrows = 3, shareX = T, titleX = T, titleY = T)
 ```
 
-### Pipeline Log
+### Log
 
 ```{r}
 log_files <- dir('../../pipeline/log', full.names = T)
-log_content <- sapply(log_files, readLines)
+log_content <- sapply(log_files, function(file) {
+  gsub('\t', ' ', readLines(file))
+})
 names(log_content) <- tools::file_path_sans_ext(basename(names(log_content)))
-log_content
+print(log_content, quote = F)
 ```

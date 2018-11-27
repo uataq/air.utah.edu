@@ -15,6 +15,5 @@ source('_render_flex.r')
 render_flex('_flexdashboard/status.Rmd')
 render_flex('_flexdashboard/historic-co2.Rmd')
 
-render_site(encoding = 'UTF-8')
-system('rsync -avz _site/* benfasoli@air.utah.edu:/var/www/air.utah.edu/')
+render_site(encoding = 'UTF-8');system('rsync -avz _site/* benfasoli@air.utah.edu:/var/www/air.utah.edu/')
 system('rm -r _site historic-co2.html historic-co2_files status.html status_files')

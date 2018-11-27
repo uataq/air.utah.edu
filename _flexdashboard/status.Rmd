@@ -145,7 +145,55 @@ list(
 Row {.tabset data-height=600}
 ------------------------------------------------------------------------------------------
 
+### Instrument Diagnostics
+
+```{r}
+pd_h2o <- data$qaqc %>%
+  filter(ID_CO2 == -10) %>%
+  group_by(Time_UTC = as.POSIXct(trunc(Time_UTC, 'hours')),
+           stid) %>%
+  summarize(H2O_ppm_avg = mean(H2O_ppm, na.rm = T),
+            H2O_ppm_sd = sd(H2O_ppm, na.rm = T)) %>%
+  ungroup()
+attributes(pd_h2o$Time_UTC)$tzone <- 'America/Denver'
+pd_flow <- data$qaqc %>%
+  group_by(Time_UTC = as.POSIXct(trunc(Time_UTC, 'hours')),
+           stid) %>%
+  summarize_all(funs(mean(., na.rm = T))) %>%
+  ungroup() %>%
+  dplyr::select(Time_UTC, QAQC_Flag, stid, ID_CO2, Flow_mLmin, Cavity_P_torr) %>%
+  gather(key, value, -Time_UTC, -QAQC_Flag, -stid, -ID_CO2) %>%
+  na.omit() %>%
+  mutate(ideal = ifelse(key == 'Flow_mLmin', 400, 140),
+         flow_error = 100 * (value - ideal) / ideal)
+attributes(pd_flow$Time_UTC)$tzone <- 'America/Denver'
+subplot(
+  plot_ly(pd_h2o, x = ~Time_UTC, y = ~H2O_ppm_avg, color = ~stid,
+          type = 'scatter', mode = 'lines+markers', colors = colors) %>%
+    layout(xaxis = list(title = NA),
+           yaxis = list(title = 'H2O (ppm)'),
+           showlegend = F),
+  plot_ly(filter(pd_flow, ID_CO2 == -10),
+          x = ~Time_UTC, y = ~flow_error, color = ~stid,
+          type = 'scatter', mode = 'lines', colors = colors) %>%
+    layout(xaxis = list(title = NA),
+           yaxis = list(title = 'Atmosphere\n% Flow Error'),
+           showlegend = F),
+  plot_ly(filter(pd_flow, ID_CO2 > 0),
+          x = ~Time_UTC, y = ~flow_error, color = ~stid,
+          type = 'scatter', mode = 'markers', colors = colors,
+          marker = list(size = 15,
+                        line = list(color = 'rgba(255, 255, 255, .3)',
+                                    width = 2),
+                        opacity = 0.8)) %>%
+    layout(xaxis = list(title = 'Mountain Time'),
+           yaxis = list(title = 'References\n% Flow Error'),
+           showlegend = F),
+  heights = c(0.5, 0.25, 0.25), nrows = 3, shareX = T, titleX = T, titleY = T)
+```
+
 ### CO<sub>2</sub> Calibrations
+
 ```{r}
 pd <- data$calibrated %>%
   filter(ID_CO2 == -10) %>%
@@ -296,59 +344,14 @@ subplot(
 )
 ```
 
-### Instrument Diagnostics
-
-```{r}
-pd_h2o <- data$qaqc %>%
-  filter(ID_CO2 == -10) %>%
-  group_by(Time_UTC = as.POSIXct(trunc(Time_UTC, 'hours')),
-           stid) %>%
-  summarize(H2O_ppm_avg = mean(H2O_ppm, na.rm = T),
-            H2O_ppm_sd = sd(H2O_ppm, na.rm = T)) %>%
-  ungroup()
-attributes(pd_h2o$Time_UTC)$tzone <- 'America/Denver'
-pd_flow <- data$qaqc %>%
-  group_by(Time_UTC = as.POSIXct(trunc(Time_UTC, 'hours')),
-           stid) %>%
-  summarize_all(funs(mean(., na.rm = T))) %>%
-  ungroup() %>%
-  dplyr::select(Time_UTC, QAQC_Flag, stid, ID_CO2, Flow_mLmin, Cavity_P_torr) %>%
-  gather(key, value, -Time_UTC, -QAQC_Flag, -stid, -ID_CO2) %>%
-  na.omit() %>%
-  mutate(ideal = ifelse(key == 'Flow_mLmin', 400, 140),
-         flow_error = 100 * (value - ideal) / ideal)
-attributes(pd_flow$Time_UTC)$tzone <- 'America/Denver'
-subplot(
-  plot_ly(pd_h2o, x = ~Time_UTC, y = ~H2O_ppm_avg, color = ~stid,
-          type = 'scatter', mode = 'lines+markers', colors = colors) %>%
-    layout(xaxis = list(title = NA),
-           yaxis = list(title = 'H2O (ppm)'),
-           showlegend = F),
-  plot_ly(filter(pd_flow, ID_CO2 == -10),
-          x = ~Time_UTC, y = ~flow_error, color = ~stid,
-          type = 'scatter', mode = 'lines', colors = colors) %>%
-    layout(xaxis = list(title = NA),
-           yaxis = list(title = 'Atmosphere\n% Flow Error'),
-           showlegend = F),
-  plot_ly(filter(pd_flow, ID_CO2 > 0),
-          x = ~Time_UTC, y = ~flow_error, color = ~stid,
-          type = 'scatter', mode = 'markers', colors = colors,
-          marker = list(size = 15,
-                        line = list(color = 'rgba(255, 255, 255, .3)',
-                                    width = 2),
-                        opacity = 0.8)) %>%
-    layout(xaxis = list(title = 'Mountain Time'),
-           yaxis = list(title = 'References\n% Flow Error'),
-           showlegend = F),
-  heights = c(0.5, 0.25, 0.25), nrows = 3, shareX = T, titleX = T, titleY = T)
-```
-
 ### Log
 
 ```{r}
 log_files <- dir('../../pipeline/log', full.names = T)
 log_content <- sapply(log_files, function(file) {
-  gsub('\t', ' ', readLines(file))
+  content <- readLines(file)
+  run_start <- max(tail(grep('Run: ', content), 1), 1)
+  gsub('\t', ' ', content[run_start:length(content)])
 })
 names(log_content) <- tools::file_path_sans_ext(basename(names(log_content)))
 print(log_content, quote = F)

@@ -95,12 +95,17 @@ map <- leaflet(data = map_data, width = '100%', height = '100%',
            attribution = paste(sep = ' | ',
                                'Ben Fasoli',
                                'Map data &copy; CartoDB/Esri',
-                               strftime(max(data$Time_UTC, na.rm = T), 
+                               strftime(max(data$Time_UTC, na.rm = T),
                                         tz = 'America/Denver',
                                         format = '%b %d %I:%M %p %Z'))) %>%
   addTiles(paste0('https://server.arcgisonline.com/ArcGIS/rest/services/',
                   'World_Terrain_Base/MapServer/tile/{z}/{y}/{x}'),
            options = tileOptions(opacity = 0.2)) %>%
+  # addTiles('https://api.mapbox.com/styles/v1/benfasoli/cjn3f8qee16kv2smgiay48wf2/tiles/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYmVuZmFzb2xpIiwiYSI6ImNpem0wNmdleTAxbnAzM3RqdGIyemR6MHgifQ.Mfsp7dVlZga8WSPwL-NVow') %>%
+  # fitBounds(lng1 = min(map_data$long),
+  #           lng2 = max(map_data$long),
+  #           lat1 = min(map_data$lati),
+  #           lat2 = max(map_data$lati)) %>%
   addLayersControl(
     baseGroups = c('Carbon Dioxide', 'Methane'),
     options = layersControlOptions(collapsed = F)

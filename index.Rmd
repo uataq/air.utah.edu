@@ -17,7 +17,7 @@ library(htmltools)
 library(leaflet)
 library(tidyverse)
 
-config <- data_frame(
+config <- tibble(
   col = c('CO2d_ppm',
           'CH4d_ppm'),
   name = c('Carbon Dioxide',
@@ -62,7 +62,7 @@ map_data <- bind_rows(map_data %>% mutate(is_fixed = T),
 
 # Set circle radii depending on mobile vs fixed sites
 map_data$radius <- ifelse(map_data$is_fixed, 16, 5)
-map_data$stroke_weight <- ifelse(map_data$is_fixed, 2, 1)
+map_data$stroke_weight <- ifelse(map_data$is_fixed, 2, 0)
 
 # Define URL for popup link
 map_data$url <- paste0('https://air.utah.edu/s/measurements/?_inputs_&stid=%22',

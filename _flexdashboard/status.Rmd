@@ -30,7 +30,7 @@ subplot(
     summarize(avg = mean(CO2d_ppm_cal, na.rm = T)) %>%
     ungroup() %>%
     plot_ly(x = ~hour, y = ~avg, color = ~stid,
-            type = 'scatter', mode = 'lines+markers', colors = colors) %>%
+            type = 'scattergl', mode = 'lines+markers', colors = colors) %>%
     layout(xaxis = list(title = NA),
            yaxis = list(title = 'CO2 (ppm)'),
            showlegend = F),
@@ -41,7 +41,7 @@ subplot(
     summarize(avg = mean(CH4d_ppm_cal, na.rm = T)) %>%
     ungroup() %>%
     plot_ly(x = ~hour, y = ~avg, color = ~stid,
-            type = 'scatter', mode = 'lines+markers', colors = colors) %>%
+            type = 'scattergl', mode = 'lines+markers', colors = colors) %>%
     layout(xaxis = list(title = NA),
            yaxis = list(title = 'CH4 (ppm)'),
            showlegend = F),
@@ -52,7 +52,7 @@ subplot(
     summarize(avg = mean(H2O_ppm, na.rm = T)) %>%
     ungroup() %>%
     plot_ly(x = ~hour, y = ~avg, color = ~stid,
-            type = 'scatter', mode = 'lines+markers', colors = colors) %>%
+            type = 'scattergl', mode = 'lines+markers', colors = colors) %>%
     layout(xaxis = list(title = 'Hour'),
            yaxis = list(title = 'H2O (ppm)'),
            showlegend = F),
@@ -169,19 +169,19 @@ pd_flow <- data$qaqc %>%
 attributes(pd_flow$Time_UTC)$tzone <- 'America/Denver'
 subplot(
   plot_ly(pd_h2o, x = ~Time_UTC, y = ~H2O_ppm_avg, color = ~stid,
-          type = 'scatter', mode = 'lines+markers', colors = colors) %>%
+          type = 'scattergl', mode = 'lines+markers', colors = colors) %>%
     layout(xaxis = list(title = NA),
            yaxis = list(title = 'H2O (ppm)'),
            showlegend = F),
   plot_ly(filter(pd_flow, ID_CO2 == -10),
           x = ~Time_UTC, y = ~flow_error, color = ~stid,
-          type = 'scatter', mode = 'lines', colors = colors) %>%
+          type = 'scattergl', mode = 'lines', colors = colors) %>%
     layout(xaxis = list(title = NA),
            yaxis = list(title = 'Atmosphere\n% Flow Error'),
            showlegend = F),
   plot_ly(filter(pd_flow, ID_CO2 > 0),
           x = ~Time_UTC, y = ~flow_error, color = ~stid,
-          type = 'scatter', mode = 'markers', colors = colors,
+          type = 'scattergl', mode = 'markers', colors = colors,
           marker = list(size = 15,
                         line = list(color = 'rgba(255, 255, 255, .3)',
                                     width = 2),
@@ -203,6 +203,7 @@ pd <- data$calibrated %>%
   ungroup()
 attributes(pd$Time_UTC)$tzone <- 'America/Denver'
 pd_ref_fits <- pd_ref %>%
+  filter(!is.na(CO2d_ppm), !is.na(ID_CO2)) %>%
   group_by(stid) %>%
   do({
     mod <- lm(CO2d_ppm ~ ID_CO2, data = .)
@@ -219,27 +220,27 @@ pd_ref_fits <- pd_ref %>%
 subplot(
   subplot(
     plot_ly(pd, x = ~Time_UTC, y = ~CO2d_ppm_cal, color = ~stid,
-            type = 'scatter', mode = 'lines+markers', colors = colors) %>%
+            type = 'scattergl', mode = 'lines+markers', colors = colors) %>%
       layout(xaxis = list(title = NA),
              yaxis = list(title = 'CO2 (ppm)'),
              showlegend = F),
     plot_ly(pd, x = ~Time_UTC, y = ~CO2d_rmse, color = ~stid,
-            type = 'scatter', mode = 'lines', colors = colors) %>%
+            type = 'scattergl', mode = 'lines', colors = colors) %>%
       layout(xaxis = list(title = NA),
              yaxis = list(title = 'RMSE'),
              showlegend = F),
     plot_ly(pd, x = ~Time_UTC, y = ~abs(CO2d_ppm_cal - CO2d_ppm_meas), color = ~stid,
-            type = 'scatter', mode = 'lines', colors = colors) %>%
+            type = 'scattergl', mode = 'lines', colors = colors) %>%
       layout(xaxis = list(title = NA),
              yaxis = list(title = 'Correction'),
              showlegend = F),
     plot_ly(pd, x = ~Time_UTC, y = ~CO2d_m, color = ~stid,
-            type = 'scatter', mode = 'lines', colors = colors) %>%
+            type = 'scattergl', mode = 'lines', colors = colors) %>%
       layout(xaxis = list(title = NA),
              yaxis = list(title = 'm'),
              showlegend = F),
     plot_ly(pd, x = ~Time_UTC, y = ~CO2d_b, color = ~stid,
-            type = 'scatter', mode = 'lines', colors = colors) %>%
+            type = 'scattergl', mode = 'lines', colors = colors) %>%
       layout(xaxis = list(title = NA),
              yaxis = list(title = 'b'),
              showlegend = F),
@@ -248,7 +249,7 @@ subplot(
   ),
   subplot(
     plot_ly(pd_ref, x = ~ID_CO2, y = ~CO2d_ppm, color = ~stid,
-            type = 'scatter', mode = 'markers', colors = colors) %>%
+            type = 'scattergl', mode = 'markers', colors = colors) %>%
       add_segments(x = min(pd_ref$CO2d_ppm), xend = max(pd_ref$CO2d_ppm), 
                    y = min(pd_ref$CO2d_ppm), yend = max(pd_ref$CO2d_ppm), 
                    color = I('black'), opacity = 0.1, inherit = F, showlegend = F) %>%
@@ -292,27 +293,27 @@ pd_ref_fits <- pd_ref %>%
 subplot(
   subplot(
     plot_ly(pd, x = ~Time_UTC, y = ~CH4d_ppm_cal, color = ~stid,
-            type = 'scatter', mode = 'lines+markers', colors = colors) %>%
+            type = 'scattergl', mode = 'lines+markers', colors = colors) %>%
       layout(xaxis = list(title = NA),
              yaxis = list(title = 'CH4 (ppm)'),
              showlegend = F),
     plot_ly(pd, x = ~Time_UTC, y = ~CH4d_rmse, color = ~stid,
-            type = 'scatter', mode = 'lines', colors = colors) %>%
+            type = 'scattergl', mode = 'lines', colors = colors) %>%
       layout(xaxis = list(title = NA),
              yaxis = list(title = 'RMSE'),
              showlegend = F),
     plot_ly(pd, x = ~Time_UTC, y = ~abs(CH4d_ppm_cal - CH4d_ppm_meas), color = ~stid,
-            type = 'scatter', mode = 'lines', colors = colors) %>%
+            type = 'scattergl', mode = 'lines', colors = colors) %>%
       layout(xaxis = list(title = NA),
              yaxis = list(title = 'Correction'),
              showlegend = F),
     plot_ly(pd, x = ~Time_UTC, y = ~CH4d_m, color = ~stid,
-            type = 'scatter', mode = 'lines', colors = colors) %>%
+            type = 'scattergl', mode = 'lines', colors = colors) %>%
       layout(xaxis = list(title = NA),
              yaxis = list(title = 'm'),
              showlegend = F),
     plot_ly(pd, x = ~Time_UTC, y = ~CH4d_b, color = ~stid,
-            type = 'scatter', mode = 'lines', colors = colors) %>%
+            type = 'scattergl', mode = 'lines', colors = colors) %>%
       layout(xaxis = list(title = NA),
              yaxis = list(title = 'b'),
              showlegend = F),
@@ -321,7 +322,7 @@ subplot(
   ),
   subplot(
     plot_ly(pd_ref, x = ~ID_CH4, y = ~CH4d_ppm, color = ~stid,
-            type = 'scatter', mode = 'markers', colors = colors) %>%
+            type = 'scattergl', mode = 'markers', colors = colors) %>%
       add_segments(x = min(pd_ref$CH4d_ppm), xend = max(pd_ref$CH4d_ppm), 
                    y = min(pd_ref$CH4d_ppm), yend = max(pd_ref$CH4d_ppm), 
                    color = I('black'), opacity = 0.1, inherit = F, showlegend = F) %>%

@@ -1,6 +1,6 @@
 # Ben Fasoli
 # Process data for website render
-setwd('/uufs/chpc.utah.edu/common/home/lin-group2/measurements')
+setwd('/uufs/chpc.utah.edu/common/home/lin-group9/measurements')
 
 library(data.table)
 library(fasttime)
@@ -50,13 +50,12 @@ data$trx <- rbindlist(lapply(trx_stids, function(stid) {
   gps <- gps %>%
     filter(Time_UTC > Sys.time() - 7200) %>%
     mutate(Time_UTC = as.POSIXct(trunc(Time_UTC, 'secs'))) %>%
-    rename(lati = Lati_deg, long = Long_deg) %>%
-    mutate(long = -long)  # TODO: ensure longitude is negative in trx processing
+    rename(lati = Lati_deg, long = Long_deg)
   if ('lgr_ugga' %in% instruments) {
     lgr_ugga <- fread(tail(dir(file.path(base_path, 'lgr_ugga', 'qaqc'), full.names = 1), 1),
                       select = c(1, 6, 7, 13, 14))
     lgr_ugga$Time_UTC <- fastPOSIXct(lgr_ugga$Time_UTC, tz = 'UTC')
-    lgr_ugga <- lgr_ugga %>% 
+    lgr_ugga <- lgr_ugga %>%
       filter(Time_UTC > Sys.time() - 7200,
              ID_CO2 == -10) %>%
       mutate(Time_UTC = as.POSIXct(trunc(Time_UTC, 'secs'))) %>%
@@ -68,7 +67,8 @@ data$trx <- rbindlist(lapply(trx_stids, function(stid) {
              lati = round(lati, 3)) %>%
     summarize(Time_UTC = max(Time_UTC, na.rm = T),
               CO2d_ppm = mean(CO2d_ppm, na.rm = T),
-              CH4d_ppm = mean(CH4d_ppm, na.rm = T))
+              CH4d_ppm = mean(CH4d_ppm, na.rm = T)) %>%
+    na.omit()
 }))
 
 # Convert timestamps

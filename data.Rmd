@@ -1,0 +1,103 @@
+---
+title: UATAQ Data
+---
+
+<div class="content-page">
+
+### Fair Use Agreement
+It is inappropriate for individuals or organizations to host our data on their website sites or servers without prior written permission. Please respect this requirement.
+
+All researchers using this data must inform us of how you plan on using this data and of any publication plans. If we feel that we should be acknowledged or offered participation as co-authors we will let you know and we assume that an agreement on such matters will be reached prior to writing a manuscript and/or publishing the data.  If your work directly competes with (a) our analysis or (b) a collaborative study from a colleague who has already approached us about using the data we ask that we or our collaborators have the opportunity to submit a manuscript before you submit one that uses our data.
+
+Every effort is made to produce the most accurate and precise measurements possible.  However we reserve the right to make corrections to the data based on recalibration of standard gases or for other reasons deemed scientifically justified. We are not responsible for results and conclusions based on use of these data without regard to this warning.
+
+### Reciprocity Agreement
+Use of these data implies an agreement to reciprocate. Laboratories making similar measurements agree to make their own data available to the general public and to the scientific community in an equally complete and easily accessible form. Modelers are encouraged to make available to the community (upon request) their own tools used in the interpretation of the University of Utah data namely well documented model code transport fields and additional information necessary for other scientists to repeat the work and to run modified versions. Model availability includes collaborative support for new users of the models.
+
+### Registration
+
+<!--html_preserve-->
+<style>
+  .input-group {
+    margin-bottom: 15px;
+  }
+</style>
+<form action="https://air.utah.edu/api/users/" method="post">
+  <div class="row">
+      <div class="col-sm-6">
+          <div class="input-group">
+            <span class="input-group-addon"><i class="fa fa-user fa-fw"></i></span>
+            <input type="text" class="form-control" name="name" placeholder="Your name">
+          </div>
+      </div>
+      <div class="col-sm-6">
+          <div class="input-group">
+              <span class="input-group-addon"><i class="fa fa-envelope fa-fw"></i></span>
+              <input type="text" class="form-control" name="email" placeholder="Email address">
+          </div>
+      </div>
+  </div>
+  <div class="input-group">
+      <span class="input-group-addon"><i class="fa fa-building fa-fw"></i></span>
+      <input type="text" class="form-control" name="affiliation" placeholder="Affiliation">
+  </div>
+  
+  <div align="center">
+    <button type="submit" value="send" class="btn btn-danger" style="min-width:400px; margin">Submit</button>
+  </div>
+</form>
+<!--/html_preserve-->
+
+### Query Builder
+
+<!--html_preserve-->
+<div class="row">
+  <div class="col-sm-6">
+      <div class="input-group">
+        <span class="input-group-addon"><i class="fa fa-user fa-fw"></i></span>
+        <input type="text" class="form-control" id="stid" placeholder="Site Identifier">
+      </div>
+  </div>
+  <div class="col-sm-6">
+      <div class="input-group">
+          <span class="input-group-addon"><i class="fa fa-envelope fa-fw"></i></span>
+          <input type="text" class="form-control" id="email" placeholder="Email address">
+      </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-sm-12">
+    <div class="input-group">
+      <span class="input-group-addon"><i class="fa fa-code fa-fw"></i></span>
+      <input type="text" class="form-control" id="query" placeholder="https://air.utah.edu/api/data/?">
+    </div>
+  </div>
+</div>
+<!--/html_preserve-->
+
+<script>
+  var stid = '';
+  var email = '';
+  
+  function setQueryOutput(stid, email) {
+    var query = document.getElementById('query');
+    if ((stid.length == 0) | (email.length == 0)) {
+      query.value = '';
+    } else {
+      query.value = `https://air.utah.edu/api/data/${stid}/?email=${email}`;
+    }
+  }
+  
+  document.getElementById('stid').addEventListener('keyup', function(e) {
+    stid = e.target.value;
+    setQueryOutput(stid, email);
+  });
+  
+  document.getElementById('email').addEventListener('keyup', function(e) {
+    email = e.target.value;
+    setQueryOutput(stid, email);
+  });
+  
+</script>
+
+</div>

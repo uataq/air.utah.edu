@@ -4,3 +4,4 @@
 .Ruserdata
 _site
 _data.rds
+*.knit.html

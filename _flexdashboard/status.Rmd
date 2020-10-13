@@ -7,13 +7,10 @@ library(flexdashboard)
 library(formattable)
 library(plotly)
 library(tidyverse)
-
 data <- readRDS('../_data.rds')
-
 colors <- c('#323031', '#413C58', '#6B818C', '#3DCCC7', '#76F7BF',
             '#C4B7CB', '#1BB065', '#BCE784', '#F9E332', '#E49820',
             '#FF8360', '#E1401D')
-
 rmse <- function(e) sqrt(mean(e^2, na.rm = T))
 ```
 
@@ -216,7 +213,6 @@ pd_ref_fits <- pd_ref %>%
     )
   }) %>%
   ungroup()
-
 subplot(
   subplot(
     plot_ly(pd, x = ~Time_UTC, y = ~CO2d_ppm_cal, color = ~stid,
@@ -289,7 +285,6 @@ pd_ref_fits <- pd_ref %>%
     )
   }) %>%
   ungroup()
-
 subplot(
   subplot(
     plot_ly(pd, x = ~Time_UTC, y = ~CH4d_ppm_cal, color = ~stid,

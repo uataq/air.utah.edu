@@ -15,8 +15,9 @@ render_flex <- function(src, ...) {
                    vertical_layout = 'scroll'
                  ), ...
   )
-  html <- readLines(file)
   
+  html <- readLines(file)
+
   # Replace navigation with global _navbar
   nav  <- readLines('_navbar.html')
   delete <- c(grep('<div class="navbar navbar-inverse navbar-fixed-top"',
@@ -26,5 +27,6 @@ render_flex <- function(src, ...) {
   out <- append(out, nav)
   out <- append(out, html[(delete[2]+1):length(html)])
   writeLines(out, file)
+  
   file
 }

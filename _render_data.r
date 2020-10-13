@@ -28,6 +28,7 @@ data$qaqc <- rbindlist(lapply(stids, function(stid) {
                          showProgress = F, 
                          select = columns))
   df$stid <- stid
+  str(tail(df))
   df
 }), fill = T)
 

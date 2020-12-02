@@ -28,7 +28,7 @@ data$qaqc <- rbindlist(lapply(stids, function(stid) {
                          showProgress = F, 
                          select = columns))
   df$stid <- stid
-  str(tail(df))
+  # str(tail(df))
   df
 }), fill = T)
 
@@ -52,6 +52,7 @@ data$trx <- rbindlist(lapply(trx_stids, function(stid) {
     filter(Time_UTC > Sys.time() - 7200) %>%
     mutate(Time_UTC = as.POSIXct(trunc(Time_UTC, 'secs'))) %>%
     rename(lati = Lati_deg, long = Long_deg)
+
   if ('lgr_ugga' %in% instruments) {
     lgr_ugga <- fread(tail(dir(file.path(base_path, 'lgr_ugga', 'qaqc'), full.names = 1), 1),
                       select = c(1, 6, 7, 13, 14))
@@ -61,15 +62,20 @@ data$trx <- rbindlist(lapply(trx_stids, function(stid) {
              ID_CO2 == -10) %>%
       mutate(Time_UTC = as.POSIXct(trunc(Time_UTC, 'secs'))) %>%
       dplyr::select(-ID_CO2, -QAQC_Flag)
-  }
-  inner_join(gps, lgr_ugga, by = 'Time_UTC') %>%
-    group_by(stid = stid,
-             long = round(long, 3),
-             lati = round(lati, 3)) %>%
-    summarize(Time_UTC = max(Time_UTC, na.rm = T),
-              CO2d_ppm = mean(CO2d_ppm, na.rm = T),
-              CH4d_ppm = mean(CH4d_ppm, na.rm = T)) %>%
-    na.omit()
+
+    trx <- inner_join(gps, lgr_ugga, by = 'Time_UTC') %>%
+      group_by(stid = stid,
+              long = round(long, 3),
+              lati = round(lati, 3)) %>%
+      summarize(Time_UTC = max(Time_UTC, na.rm = T),
+                CO2d_ppm = mean(CO2d_ppm, na.rm = T),
+                CH4d_ppm = mean(CH4d_ppm, na.rm = T)) %>%
+      ungroup() %>%
+      na.omit()
+
+    return(trx)
+  } 
+
 }))
 
 # Convert timestamps

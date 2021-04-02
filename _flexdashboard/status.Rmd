@@ -17,7 +17,7 @@ rmse <- function(e) sqrt(mean(e^2, na.rm = T))
 Row
 ------------------------------------------------------------------------------------------
 
-### Average Diel Cycle <span style="float:right;"><a href="/s/diagnostics/"><i class="fa fa-bar-chart"></i> Timeseries Diagnostics</a></span>
+### Average Diel Cycle (10-day) <span style="float:right;"><a href="/s/diagnostics/"><i class="fa fa-bar-chart"></i> Timeseries Diagnostics</a></span>
 ```{r}
 subplot(
   data$calibrated %>%
@@ -57,10 +57,10 @@ subplot(
 )
 ```
 
-### Network Diagnostics <span style="float:right;"><a href="https://github.com/uataq/data-pipeline#qaqc-flagging-conventions"><i class="fa fa-bars"></i> QAQC Definitions</a></span>
+### Network Diagnostics (1-day) <span style="float:right;"><a href="https://github.com/uataq/data-pipeline#qaqc-flagging-conventions"><i class="fa fa-bars"></i> QAQC Definitions</a></span>
 ```{r}
 pd_ref <- data$qaqc %>%
-  filter(Time_UTC >= Sys.time() - 86400,
+  filter(Time_UTC >= Sys.time() - 86400 * 1,
          ID_CO2 > 0) %>%
   mutate(label = paste(toupper(stid), ID_CO2, sep = '/'))
 pd_ref_error <- pd_ref %>%
@@ -88,7 +88,7 @@ errorStyle <- function(x, background.color = '#ED254E') {
 list(
   data$qaqc %>% 
     group_by(stid) %>% 
-    summarize(`last data` = max(Time_UTC)),
+    summarize(`last seen` = max(Time_UTC)),
   data$qaqc %>%
     filter(ID_CO2 != -99,
            Time_UTC > Sys.time() - 86400) %>%
@@ -103,19 +103,19 @@ list(
   pd_ref_error
 ) %>%
   reduce(full_join, by = 'stid') %>%
-  dplyr::select(stid, `last data`, qaqc, `co2 err`, `co2 ptp`, `ch4 err`, `ch4 ptp`) %>%
+  dplyr::select(stid, `last seen`, qaqc, `co2 err`, `co2 ptp`, `ch4 err`, `ch4 ptp`) %>%
   formattable(
     list(
-      `last data` = formatter('span',
+      `last seen` = formatter('span',
                               style = x ~ ifelse(x < (Sys.time() - 2 * 3600),
                                                  errorStyle(T), errorStyle(F)),
                               x ~ format(x, tz = 'America/Denver', '%b %d %H:%M %Z')),
-      qaqc = formatter('span',
-                       style = x ~ ifelse(nchar(x) < 1 | is.na(x),
-                                          style(color = '#8FD694'),
-                                          errorStyle(T)),
-                       x ~ ifelse(nchar(x) < 1 | is.na(x), 
-                                  checkStyle, x)),
+      qc = formatter('span',
+                      style = x ~ ifelse(nchar(x) < 1 | is.na(x),
+                                        style(color = '#8FD694'),
+                                        errorStyle(T)),
+                      x ~ ifelse(nchar(x) < 1 | is.na(x), 
+                                checkStyle, x)),
       `co2 err` = formatter('span',
                             style = x ~ ifelse(x < 3 | is.na(x),
                                                errorStyle(F), errorStyle(T)),
@@ -142,7 +142,7 @@ list(
 Row {.tabset data-height=600}
 ------------------------------------------------------------------------------------------
 
-### Instrument Diagnostics
+### Instrument Diagnostics (10-day)
 
 ```{r}
 pd_h2o <- data$qaqc %>%

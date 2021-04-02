@@ -44,7 +44,12 @@ data$calibrated <- rbindlist(lapply(stids, function(stid) {
 data$trx <- rbindlist(lapply(trx_stids, function(stid) {
   base_path <- file.path('data', stid)
   instruments <- dir(base_path)
-  gps <- fread(tail(dir(file.path(base_path, 'gps', 'qaqc'), full.names = 1), 1),
+
+  gps_filename <- tail(dir(file.path(base_path, 'gps', 'qaqc'), full.names = 1), 1)
+  if (length(gps_filename) == 0) {
+    return()
+  }
+  gps <- fread(gps_filename,
                select = c('Time_UTC', 'Lati_deg', 'Long_deg'))
   gps$Time_UTC <- fastPOSIXct(gps$Time_UTC, tz = 'UTC')
   gps <- gps %>%
@@ -87,4 +92,3 @@ data$qaqc <- data$qaqc[data$qaqc$Time_UTC > time_start]
 data$calibrated <- data$calibrated[data$calibrated$Time_UTC > time_start]
 
 saveRDS(data, 'air.utah.edu/_data.rds')
-

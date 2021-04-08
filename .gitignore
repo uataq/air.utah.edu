@@ -5,3 +5,6 @@
 _site
 _data.rds
 *.knit.html
+
+status.html
+status_files

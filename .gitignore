@@ -8,3 +8,12 @@ _data.rds
 
 status.html
 status_files
+site_libs
+
+*.knit.md
+*.utf8.md
+
+data.html
+index.html
+nerdmobile-rental.html
+shire.html

@@ -145,10 +145,10 @@ map
 
 <div class="mobileHide" style="position:fixed; left: 5px; bottom: 5px; text-align: center;">
 <a href="http://sustainability.utah.edu">
-<img src="https://air.utah.edu/~benfasoli/img/SCIF_logo.png" style="width: 130px;">
+<img src="https://air.utah.edu/img/SCIF_logo.png" style="width: 130px;">
 </a>
 <a href="http://lair.utah.edu">
-<img src="https://air.utah.edu/~benfasoli/img/LAIR_logo.png" style="width: 250px;">
+<img src="https://air.utah.edu/img/LAIR_logo.png" style="width: 250px;">
 </a>
 </div>
 

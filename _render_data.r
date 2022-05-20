@@ -10,7 +10,7 @@ source('pipeline/_global.r')
 # Determine site list
 stids <- site_config$stid[site_config$active]
 trx_stids <- grep('trx', stids, value = T)
-stids <- setdiff(stids, trx_stids)
+stids <- setdiff(stids, trx_stids)  # remove TRAX from stids
 
 # Determine number of files to read
 month_start <- as.POSIXct(format(Sys.time(), tz = 'UTC', '%Y-%m-01'), tz = 'UTC')
@@ -19,10 +19,12 @@ nf <- ifelse(difftime(Sys.time(), month_start, units = 'days') > 8, 1, 2)
 data <- list()
 data$qaqc <- rbindlist(lapply(stids, function(stid) {
   base_path <- file.path('data', stid)
-  instrument <- grep('lgr|licor', dir(base_path), value = T)[1]
+  # instrument <- grep('lgr|licor', dir(base_path), value = T)[1]
+  instrument <- site_config$instrument.ghg[site_config$stid==stid]
   columns <- switch(instrument,
                     'lgr_ugga' = c(1, 4, 8, 10, 12, 24, 25, 26),
-                    'licor_6262' = c(1, 7, 16, 17, 20, 21))
+                    'licor_6262' = c(1, 7, 16, 17, 20, 21),
+                    'licor_7000' = c(1, 6, 14, 15, 18, 19))
   files <- tail(dir(file.path(base_path, instrument, 'qaqc'), full.names = T), nf)
   df <- rbindlist(lapply(files, fread, 
                          showProgress = F, 
@@ -33,7 +35,8 @@ data$qaqc <- rbindlist(lapply(stids, function(stid) {
 
 data$calibrated <- rbindlist(lapply(stids, function(stid) {
   base_path <- file.path('data', stid)
-  instrument <- grep('lgr|licor', dir(base_path), value = T)[1]
+  # instrument <- grep('lgr|licor', dir(base_path), value = T)[1]
+  instrument <- site_config$instrument.ghg[site_config$stid==stid]
   files <- tail(dir(file.path(base_path, instrument, 'calibrated'), full.names = T), nf)
   df <- rbindlist(lapply(files, fread, 
                          showProgress = F))

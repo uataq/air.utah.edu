@@ -73,7 +73,7 @@ map_data$url[grepl('trx', map_data$stid)] <- 'https://air.utah.edu/s/measurement
 map_data$durl[grepl('trx', map_data$stid)] <- 'https://air.utah.edu/s/diagnostics/'
 map_data$popup <- paste0(
   '<b>', map_data$name, '</b>', ' (', toupper(map_data$stid), ')<br>',
-  strftime(data$Time_UTC, tz = 'America/Denver', format = '%b %d %I:%M %p %Z<br>'),
+  strftime(map_data$Time_UTC, tz = 'America/Denver', format = '%b %d %I:%M %p %Z<br>'),
   ifelse(is.na(map_data$CO2d_ppm), '',
          paste0('CO<sub>2</sub>&emsp;<b>', map_data$CO2d_ppm, ' ppm</b><br>')),
   ifelse(is.na(map_data$CH4d_ppm), '',

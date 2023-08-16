@@ -345,9 +345,21 @@ subplot(
 ```{r}
 log_files <- dir('../../pipeline/log', full.names = T)
 log_content <- sapply(log_files, function(file) {
-  content <- readLines(file)
-  run_start <- max(tail(grep('Run: ', content), 1), 1)
-  gsub('\t', ' ', content[run_start:length(content)])
+  con <- pipe(paste('tail -n 1000', file), 'rb')
+  content <- read_file(con)
+  close(con)
+
+  pattern <- 'Run: (\\w+)\\/(\\w+)\\s+(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2})(?:(?!Run:)[\\s\\S])+'
+  runs <- as.data.frame(str_match_all(content, pattern))
+  colnames(runs) <- c('content', 'stid', 'instrument', 'Time_UTC')
+  runs$Time_UTC <- lubridate::round_date(as.POSIXct(runs$Time_UTC), "15 minutes")
+
+  run_content <- runs %>%
+    slice_max(order_by = Time_UTC) %>%
+    mutate(content = str_trim(content)) %>%
+    pull(content)
+
+  str_split(paste(run_content, collapse='\n\n'), '\n')[[1]]
 })
 names(log_content) <- tools::file_path_sans_ext(basename(names(log_content)))
 print(log_content, quote = F)

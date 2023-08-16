@@ -74,9 +74,7 @@ data$trx <- rbindlist(lapply(trx_stids, function(stid) {
       group_by(stid = stid,
               long = round(long, 3),
               lati = round(lati, 3)) %>%
-      summarize(Time_UTC = max(Time_UTC, na.rm = T),
-                CO2d_ppm = mean(CO2d_ppm, na.rm = T),
-                CH4d_ppm = mean(CH4d_ppm, na.rm = T)) %>%
+      slice_max(order_by = Time_UTC) %>%
       ungroup() %>%
       na.omit()
 

@@ -58,11 +58,21 @@ map_data <- bind_rows(map_data %>% mutate(is_fixed = T),
                       data_master$trx %>% mutate(is_fixed = F)) %>% 
   inner_join(dplyr::select(site_config, stid, name), by = 'stid') %>%
   mutate(CO2d_ppm = round(CO2d_ppm, 0),
-         CH4d_ppm = round(CH4d_ppm, 1))
+         CH4d_ppm = round(CH4d_ppm, 1)) %>%
+  arrange(Time_UTC)
 
-# Set circle radii depending on mobile vs fixed sites
+# Determine most recent data point
+map_data <- map_data %>%
+  group_by(stid) %>%
+  mutate(is_most_recent = Time_UTC == max(Time_UTC)) %>%
+  ungroup()
+
+# Set circle depending on mobile vs fixed sites
+map_data$color <- ifelse(with(map_data, !is_fixed & is_most_recent), 'black', 'white')
+map_data$fillOpacity <- ifelse(with(map_data, !is_fixed & is_most_recent), 1, 0.7)
 map_data$radius <- ifelse(map_data$is_fixed, 16, 5)
-map_data$stroke_weight <- ifelse(map_data$is_fixed, 2, 0)
+map_data$radius[with(map_data, !is_fixed & is_most_recent)] <- 7
+map_data$stroke_weight <- ifelse(with(map_data, is_most_recent), 2, 0)
 
 # Define URL for popup link
 map_data$url <- paste0('https://air.utah.edu/s/measurements/?_inputs_&stid=%22',
@@ -73,7 +83,7 @@ map_data$url[grepl('trx', map_data$stid)] <- 'https://air.utah.edu/s/measurement
 map_data$durl[grepl('trx', map_data$stid)] <- 'https://air.utah.edu/s/diagnostics/'
 map_data$popup <- paste0(
   '<b>', map_data$name, '</b>', ' (', toupper(map_data$stid), ')<br>',
-  strftime(data$Time_UTC, tz = 'America/Denver', format = '%b %d %I:%M %p %Z<br>'),
+  strftime(map_data$Time_UTC, tz = 'America/Denver', format = '%b %d %I:%M %p %Z<br>'),
   ifelse(is.na(map_data$CO2d_ppm), '',
          paste0('CO<sub>2</sub>&emsp;<b>', map_data$CO2d_ppm, ' ppm</b><br>')),
   ifelse(is.na(map_data$CH4d_ppm), '',
@@ -130,8 +140,8 @@ for (i in 1:nrow(config)) {
     addCircleMarkers(~long, ~lati, popup = ~popup,
                      radius = ~radius, 
                      opacity = 0.3, weight = ~stroke_weight,
-                     color = 'white', group = config$name[i],
-                     fillColor = pal(color_values), fillOpacity = 0.7,
+                     color = ~color, group = config$name[i],
+                     fillColor = pal(color_values), fillOpacity = ~fillOpacity,
                      label = label,
                      labelOptions = labelOptions(noHide = T,
                                                  direction = 'center',

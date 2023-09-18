@@ -14,6 +14,7 @@ setwd('/uufs/chpc.utah.edu/common/home/lin-group9/measurements')
 source('air.utah.edu/_render_data.r')
 setwd('/uufs/chpc.utah.edu/common/home/lin-group9/measurements/air.utah.edu')
 
+knitr::opts_knit$set(progress = F)
 source('_render_flex.r')
 render_flex('_flexdashboard/status.Rmd')
 # render_flex('_flexdashboard/historic-co2.Rmd')

@@ -11,7 +11,7 @@ output:
 
 <div class="map">
 
-```{r, , echo = FALSE, message = FALSE, warning = FALSE}
+```{r Map, echo = FALSE, message = FALSE, warning = FALSE}
 library(data.table)
 library(htmltools)
 library(leaflet)

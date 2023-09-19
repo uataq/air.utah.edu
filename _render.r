@@ -21,5 +21,5 @@ render_flex('_flexdashboard/status.Rmd')
 
 render_site(encoding = 'UTF-8')
 system('cp -r _site/* ~/public_html/air.utah.edu/')
-system('rm -r historic-co2.html historic-co2_files status.html status_files')
+#system('rm -r historic-co2.html historic-co2_files status.html status_files')
 

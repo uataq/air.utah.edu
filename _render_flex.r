@@ -28,5 +28,5 @@ render_flex <- function(src, ...) {
   out <- append(out, html[(delete[2]+1):length(html)])
   writeLines(out, file)
   
-  file
+  #file
 }

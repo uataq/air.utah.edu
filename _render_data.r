@@ -1,6 +1,6 @@
 # Ben Fasoli
 # Process data for website render
-setwd('/uufs/chpc.utah.edu/common/home/lin-group9/measurements')
+setwd('/uufs/chpc.utah.edu/common/home/lin-group20/measurements')
 
 library(data.table)
 library(fasttime)

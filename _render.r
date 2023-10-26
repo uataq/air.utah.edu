@@ -10,9 +10,9 @@ print(paste('R version: ', R.home()))
 # CHPC has an old version of pandoc installed that fails
 Sys.setenv('RSTUDIO_PANDOC' = '/usr/lib/rstudio-server/bin/pandoc')
 
-setwd('/uufs/chpc.utah.edu/common/home/lin-group9/measurements')
+setwd('/uufs/chpc.utah.edu/common/home/lin-group20/measurements')
 source('air.utah.edu/_render_data.r')
-setwd('/uufs/chpc.utah.edu/common/home/lin-group9/measurements/air.utah.edu')
+setwd('/uufs/chpc.utah.edu/common/home/lin-group20/measurements/air.utah.edu')
 
 knitr::opts_knit$set(progress = F)
 source('_render_flex.r')

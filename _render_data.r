@@ -61,7 +61,7 @@ data$trx <- rbindlist(lapply(trx_stids, function(stid) {
     rename(lati = Lati_deg, long = Long_deg)
 
   if ('lgr_ugga' %in% instruments) {
-    lgr_ugga <- fread(tail(dir(file.path(base_path, 'lgr_ugga', 'qaqc'), full.names = 1), 1),
+    lgr_ugga <- fread(tail(dir(file.path(base_path, 'lgr_ugga_manual_cal', 'qaqc'), full.names = 1), 1),
                       select = c(1, 6, 7, 13, 14))
     lgr_ugga$Time_UTC <- fastPOSIXct(lgr_ugga$Time_UTC, tz = 'UTC')
     lgr_ugga <- lgr_ugga %>%

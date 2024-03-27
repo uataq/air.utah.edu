@@ -103,10 +103,9 @@ a:active {
   color: #000000 !important;
 }
 
-.leaflet-control-layers-list::before {
-  content: "Map data";
-  font-size: 15px;
-  padding-bottom: 50px;
+.leaflet-control-layers-title {
+  font-size: 18px;
+  text-align: center;
 }
 
 .leaflet-popup-content {
@@ -141,6 +140,8 @@ a:active {
   position: fixed;
   left: 0;
   right: 0;
+  top: 0;
+  margin-top: 52px;
 }
 
 /* tracer div spacing */

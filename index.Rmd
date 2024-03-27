@@ -17,130 +17,188 @@ library(htmltools)
 library(leaflet)
 library(tidyverse)
 
-config <- tibble(
-  col = c('CO2d_ppm',
-          'CH4d_ppm'),
-  name = c('Carbon Dioxide',
-           'Methane'),
-  min = c(400,
-          1.8),
-  max = c(500, 
-          2.5)
-)
-
-# Read data and filter for last 2 hours
-data_master <- readRDS('_data.rds')
-data <- data_master$qaqc %>%
-  filter(ID_CO2 == -10) %>%
-  group_by(stid) %>%
-  summarize_all(funs(tail(., 1))) %>%
-  ungroup()
-
-# Invalidate points older than 2 hours
-invalid_rows <- data$Time_UTC < Sys.time() - 7200
-invalid_cols <- setdiff(colnames(data), c('Time_UTC', 'stid'))
-data[invalid_rows, invalid_cols] <- NA
-
-# Determine time of most recent data point, formatted for print
-last_process <- strftime(max(data$Time_UTC, na.rm = T), tz = 'America/Denver',
-                         '%b %d %I:%M %p %Z')
-
 # Read site metadata
 site_config <- fread('../pipeline/config/site_config.csv')
 
-# Merge metadata with last record for each site
-map_data <- inner_join(dplyr::select(data, stid, Time_UTC, CO2d_ppm, CH4d_ppm),
-                       dplyr::select(site_config, stid, lati, long),
-                       by = 'stid')
-
-# Merge mobile and fixed sites
-map_data <- bind_rows(map_data %>% mutate(is_fixed = T),
-                      data_master$trx %>% mutate(is_fixed = F)) %>% 
-  inner_join(dplyr::select(site_config, stid, name), by = 'stid') %>%
-  mutate(CO2d_ppm = round(CO2d_ppm, 0),
-         CH4d_ppm = round(CH4d_ppm, 1)) %>%
-  arrange(Time_UTC)
-
-# Determine most recent data point
-map_data <- map_data %>%
-  group_by(stid) %>%
-  mutate(is_most_recent = Time_UTC == max(Time_UTC)) %>%
-  ungroup()
-
-# Set circle depending on mobile vs fixed sites
-map_data$color <- ifelse(with(map_data, !is_fixed & is_most_recent), 'black', 'white')
-map_data$fillOpacity <- ifelse(with(map_data, !is_fixed & is_most_recent), 1, 0.7)
-map_data$radius <- ifelse(map_data$is_fixed, 16, 5)
-map_data$radius[with(map_data, !is_fixed & is_most_recent)] <- 7
-map_data$stroke_weight <- ifelse(with(map_data, is_most_recent), 2, 0)
-
-# Define URL for popup link
-map_data$url <- paste0('https://air.utah.edu/s/measurements/?_inputs_&stid=%22',
-                       map_data$stid, '%22&submit=1')
-map_data$durl <- paste0('https://air.utah.edu/s/diagnostics/?_inputs_&stid=%22',
-                        map_data$stid, '%22')
-map_data$url[grepl('trx', map_data$stid)] <- 'https://air.utah.edu/s/measurements/'
-map_data$durl[grepl('trx', map_data$stid)] <- 'https://air.utah.edu/s/diagnostics/'
-map_data$popup <- paste0(
-  '<b>', map_data$name, '</b>', ' (', toupper(map_data$stid), ')<br>',
-  strftime(map_data$Time_UTC, tz = 'America/Denver', format = '%b %d %I:%M %p %Z<br>'),
-  ifelse(is.na(map_data$CO2d_ppm), '',
-         paste0('CO<sub>2</sub>&emsp;<b>', map_data$CO2d_ppm, ' ppm</b><br>')),
-  ifelse(is.na(map_data$CH4d_ppm), '',
-         paste0('CH<sub>4</sub>&emsp;<b>', map_data$CH4d_ppm, ' ppm</b><br>')),
-  '<a target="_blank" href="', map_data$url, '">',
-  '<button class="btn btn-danger btn-block">',
-  '<i class="fa fa-line-chart"></i> Go to the data!',
-  '</button></a>',
-  '<a class="leaflet-popup-diagnostic-button" target="_blank" href="', 
-  map_data$durl, '"><i class="fa fa-flask"></i></a>'
+# Define variables
+variables <- tribble(
+  ~variable,    ~short_name,        ~long_name,                         ~units,            ~min,  ~max,  ~round,
+  'CO2d_ppm',   'CO<sub>2</sub>',   'Carbon Dioxide',                   'ppm',             400,   500,   0,
+  'CH4d_ppm',   'CH<sub>4</sub>',   'Methane',                          'ppm',               1.8,   2.5, 1,
+  'O3_ppb',     'O<sub>3</sub>',    'Ozone',                            'ppb',              15,    70,   0,
+  'NO2_ppb',    'NO<sub>2</sub>',   'Nitrogen Dioxide',                 'ppb',               0,    35,   0,
+  'NO_ppb',     'NO',               'Nitric Oxide',                     'ppb',               0,    10,   1,
+  'PM2.5_ugm3', 'PM<sub>2.5</sub>', 'Particulate Matter<sub>2.5</sub>', 'μg/m<sup>3</sup>', 10,    50,   0,
+  'CO_ppb',     'CO',               'Carbon Monoxide',                  'ppb',             100,   500,   0,
+  'BC6_ngm3',   'BC',               'Black Carbon',                     'ng/m<sup>3</sup>', 50,   599,   0
 )
 
+# Read data
+data <- readRDS('_data.rds')$map
+
+# Filter data by valid variables
+data <- data[data$variable %in% variables$variable, ]
+
+# Split data into mobile and fixed sites
+mobile_data <- data[data$is_mobile, ]
+fixed_data <- data[!data$is_mobile, ]
+
+# Resample to align data from different instruments
+
+# For fixed sites, average the last 10 minutes of data
+fixed_data <- fixed_data %>%
+  filter(Time_UTC >= max(Time_UTC) - 600) %>%
+  group_by(stid) %>%
+  mutate(Time_UTC = max(Time_UTC)) %>%
+  group_by(is_mobile, lati, long, variable, Time_UTC, .add = T) %>%
+  summarize(value = mean(value, na.rm = T),
+            .groups = 'drop')
+
+# For mobile sites, resample to minute averages
+mobile_data <- mobile_data %>%
+  mutate(Time_UTC_raw = Time_UTC,
+         Time_UTC = lubridate::floor_date(Time_UTC, "minute")) %>%
+  group_by(is_mobile, stid, lati, long, variable, Time_UTC) %>%
+  summarize(value = mean(value, na.rm = T),
+            most_recent = max(Time_UTC_raw),
+            .groups = 'drop') %>%
+  # Determine most recent data point
+  group_by(stid) %>%
+  mutate(is_most_recent = most_recent == max(most_recent)) %>%
+  ungroup() %>%
+  select(-most_recent)
+
+# Combine the resampled data
+data <- bind_rows(fixed_data, mobile_data)
+
+# Invalidate points older than 2 hours
+invalid_rows <- data$Time_UTC < Sys.time() - 7200
+data[invalid_rows, 'value'] <- NA
+
+data <- data %>%
+  # Round values
+  inner_join(dplyr::select(variables, variable, round), by = 'variable') %>%
+  mutate(value = round(value, round)) %>%
+  # Pivot data to wide format
+  pivot_wider(id_cols = c(stid, lati, long, Time_UTC),
+              names_from = variable, values_from = value,
+              unused_fn = list(is_mobile = any, is_most_recent = any)) %>%
+  # Get site name from config
+  inner_join(dplyr::select(site_config, stid, name), by = 'stid') %>%
+  # Sort by time to ensure most recent data is on top
+  arrange(Time_UTC)
+
+# Filter variables to only those with data
+variables <- variables[variables$variable %in% colnames(data), ]
+
+# Set circle depending on mobile vs fixed sites
+data$color <- ifelse(with(data, is_mobile & is_most_recent), 'black', 'white')
+data$fillOpacity <- ifelse(with(data, is_mobile & is_most_recent), 1, 0.7)
+data$radius <- ifelse(!data$is_mobile, 16, 5)
+data$radius[with(data, is_mobile & is_most_recent)] <- 7
+data$stroke_weight <- ifelse(with(data, is_most_recent), 2, 0)
+
+# Define URL for popup link
+data$url <- paste0('https://air.utah.edu/s/measurements/?_inputs_&stid=%22',
+                   data$stid, '%22&submit=1')
+data$durl <- paste0('https://air.utah.edu/s/diagnostics/?_inputs_&stid=%22',
+                    data$stid, '%22')
+
+# Define popup content
+data <- data %>%
+  group_by(stid, lati, long) %>%
+  mutate(popup = paste0(
+    '<b>', name, '</b>', ' (', toupper(stid), ')<br>',
+    strftime(Time_UTC, tz = 'America/Denver', format = '%b %d %I:%M %p %Z<br>'),
+    '<table>',
+    paste0(lapply(variables$variable, function(var) {
+      x <- get(var)
+      num_spaces <- (6 - nchar(sub('\\..*', '', x)))
+      meta <- variables[variables$variable == var, ]
+      ifelse(is.na(x), '',
+             paste0('<tr><td>', meta$short_name, '</td>',
+                    '<td><b><span style=\"visibility:hidden\">',
+                    paste(rep(0, num_spaces), collapse = ''), '</span>', x, '</b></td>',
+                    '<td><b>&nbsp;', meta$units, '</b></td></tr>'))
+    }), collapse = ''),
+    '</table>',
+    '<a target="_blank" href="', url, '">',
+    '<button class="btn btn-danger btn-block">',
+    '<i class="fa fa-line-chart"></i> Go to the data!',
+    '</button></a>',
+    '<a class="leaflet-popup-diagnostic-button" target="_blank" href="',
+    durl, '"><i class="fa fa-flask"></i></a>'
+  )) %>%
+  ungroup()
+
 # Initialize map
-map <- leaflet(data = map_data, width = '100%', height = '100%',
+map <- leaflet(data = data, width = '100%', height = '100%',
                options = leafletOptions(
                  maxZoom = 13
                )) %>%
   addTiles('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
            attribution = paste(sep = ' | ',
-                               'Ben Fasoli',
+                               '<span id="attribution-names">Ben Fasoli & James Mineau</span>',
                                'Map data &copy; CartoDB/Esri',
-                               strftime(max(data$Time_UTC, na.rm = T),
+                               strftime(Sys.time(),
                                         tz = 'America/Denver',
                                         format = '%b %d %I:%M %p %Z'))) %>%
   addTiles(paste0('https://server.arcgisonline.com/ArcGIS/rest/services/',
                   'World_Terrain_Base/MapServer/tile/{z}/{y}/{x}'),
            options = tileOptions(opacity = 0.2)) %>%
-  # addTiles('https://api.mapbox.com/styles/v1/benfasoli/cjn3f8qee16kv2smgiay48wf2/tiles/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYmVuZmFzb2xpIiwiYSI6ImNpem0wNmdleTAxbnAzM3RqdGIyemR6MHgifQ.Mfsp7dVlZga8WSPwL-NVow') %>%
-  # fitBounds(lng1 = min(map_data$long),
-  #           lng2 = max(map_data$long),
-  #           lat1 = min(map_data$lati),
-  #           lat2 = max(map_data$lati)) %>%
   addLayersControl(
-    baseGroups = c('Carbon Dioxide', 'Methane'),
+    baseGroups = variables$long_name,
     options = layersControlOptions(collapsed = F)
   )
 
+# Use JQuery to make mobile-friendly
+map <- htmlwidgets::onRender(map, "
+  function(el, x) {
+    var layersControl = $('.leaflet-control-layers');
+    var layersControllist = $('.leaflet-control-layers-list');
+    var title = $('<div class=\"leaflet-control-layers-title\"><b>Pollutant</b></div>');
+
+    // If mobile device
+    if (window.innerWidth <= 480) {
+      // Start as collapsed
+      layersControl.removeClass('leaflet-control-layers-expanded');
+      
+      // Make title a clickable button
+      title.on('click', function() {
+        layersControl.toggleClass('leaflet-control-layers-expanded');
+      });
+
+      // Shorten attribute names
+      $('#attribution-names').text('BF & JM');
+
+    }
+    // Prepend title to layer control
+    layersControllist.prepend(title);
+  }
+")
+
 # Add species groups
-for (i in 1:nrow(config)) {
-  color_range <- c(config$min[i], config$max[i])
+for (i in seq_len(nrow(variables))) {
+  var <- variables$variable[i]
+
+  color_range <- c(variables$min[i], variables$max[i])
   pal <- colorNumeric('RdYlBu', color_range, reverse = T,
                       na.color = '#d6d6d6')
-  
+
   # Format as character vector for label placement
-  label <- as.character(map_data[[config$col[i]]])
-  label[!map_data$is_fixed] <- NA
-  
+  label <- as.character(data[[var]])
+  label[data$is_mobile] <- NA
+
   # Rescale values to within color range
-  color_values <- map_data[[config$col[i]]]
+  color_values <- data[[var]]
   color_values[color_values < color_range[1]] <- color_range[1]
   color_values[color_values > color_range[2]] <- color_range[2]
-  
+
   map <- map %>%
     addCircleMarkers(~long, ~lati, popup = ~popup,
-                     radius = ~radius, 
+                     radius = ~radius,
                      opacity = 0.3, weight = ~stroke_weight,
-                     color = ~color, group = config$name[i],
+                     color = ~color, group = variables$long_name[i],
                      fillColor = pal(color_values), fillOpacity = ~fillOpacity,
                      label = label,
                      labelOptions = labelOptions(noHide = T,
@@ -153,7 +211,7 @@ map
 
 </div>
 
-<div class="mobileHide" style="position:fixed; left: 5px; bottom: 5px; text-align: center;">
+<div class="mobileHide" style="position:fixed; left: 5px; bottom: 10px; text-align: center;">
 <a href="http://sustainability.utah.edu">
 <img src="https://air.utah.edu/img/SCIF_logo.png" style="width: 130px;">
 </a>

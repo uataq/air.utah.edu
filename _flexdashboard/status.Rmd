@@ -57,12 +57,11 @@ subplot(
 )
 ```
 
-### Network Diagnostics (1-day) <span style="float:right;"><a href="https://github.com/uataq/data-pipeline#qaqc-flagging-conventions"><i class="fa fa-bars"></i> QAQC Definitions</a></span>
+### Network Diagnostics (1-day) <span style="float:right;"><a href="https://github.com/uataq/data-pipeline/blob/main/QAQC_Flags.md#qaqc-flags"><i class="fa fa-bars"></i> QAQC Definitions</a></span>
 ```{r Network Diagnostics}
 pd_ref <- data$qaqc %>%
   filter(Time_UTC >= Sys.time() - 86400 * 1,
-         ID_CO2 > 0) %>%
-  mutate(label = paste(toupper(stid), ID_CO2, sep = '/'))
+         ID_CO2 > 0)
 pd_ref_error <- pd_ref %>%
   group_by(stid) %>%
   summarize(`co2 err` = sd(CO2d_ppm - ID_CO2, na.rm = T),
@@ -86,16 +85,16 @@ errorStyle <- function(x, background.color = '#ED254E') {
   }
 }
 list(
-  data$qaqc %>% 
-    group_by(stid) %>% 
+  data$qaqc %>%
+    group_by(stid) %>%
     summarize(`last seen` = max(Time_UTC)),
   data$qaqc %>%
     filter(ID_CO2 != -99,
            Time_UTC > Sys.time() - 86400) %>%
     group_by(stid) %>%
-    summarize(qaqc = paste(setdiff(unique(QAQC_Flag), c(-9, -1, 0)), collapse = ',')),
-  data$qaqc %>% 
-    filter(ID_CO2 == -10, 
+    summarize(qaqc = paste(setdiff(unique(QAQC_Flag), c(-1, 0)), collapse = ',')),
+  data$qaqc %>%
+    filter(ID_CO2 == -10,
            Time_UTC > Sys.time() - 86400) %>%
     group_by(stid) %>%
     summarize(`co2 ptp` = mean(abs(CO2d_ppm[2:n()] - CO2d_ppm[1:(n()-1)])),
@@ -114,7 +113,7 @@ list(
                       style = x ~ ifelse(nchar(x) < 1 | is.na(x),
                                         style(color = '#8FD694'),
                                         errorStyle(T)),
-                      x ~ ifelse(nchar(x) < 1 | is.na(x), 
+                      x ~ ifelse(nchar(x) < 1 | is.na(x),
                                 checkStyle, x)),
       `co2 err` = formatter('span',
                             style = x ~ ifelse(x < 3 | is.na(x),
@@ -131,7 +130,7 @@ list(
                             x ~ ifelse(is.na(x), '-', signif(x, 2))),
       `ch4 ptp` = formatter('span',
                             style = x ~ ifelse(x < 0.01 | is.na(x),
-                                               errorStyle(F), 
+                                               errorStyle(F),
                                                errorStyle(T, '#FFB20F')),
                             x ~ ifelse(is.na(x), '-', signif(x, 2)))
     )

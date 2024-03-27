@@ -10,23 +10,35 @@ title: About UATAQ
 
 - University of Utah President David W. Pershing and Board of Trustees
 
-The Utah Atmospheric Trace Gas & Air Quality (UATAQ) lab was started in 2013 as a joint effort between the Global Change and Sustainability Center, the Department of Biology and the Department of Atmospheric Science. The mission of the lab is to collect and analyze long term, high frequency, high precision, and spatially variable trace gas and air quality data with the aim of understanding the spatial distribution and long term trends throughout Salt Lake Valley and Northern Utah. Building on the work of one of the founding members, Dr. Jim Ehleringer, the lab has been responsible for improving and expanding existing networks of instrumentation, developing and implementing new networks with different aims, and building an on campus facility for research, development, and student outreach. UATAQ specializes in the long term measurement of both mobile and in-situ trace gas and criteria pollutants. Our data is calibrated to international standards and we possess numerous years of experience in collecting trace gas data, including one of the longest continuous urban CO2 records in the nation.
+The Utah Atmospheric Trace Gas & Air Quality (UATAQ) lab was started in 2013 as a joint effort between the Global Change and Sustainability Center, the Department of Biology and the Department of Atmospheric Science. The mission of the lab is to collect and analyze long term, high frequency, high precision, and spatially variable trace gas and air quality data with the aim of understanding the spatial distribution and long term trends throughout Salt Lake Valley and Northern Utah. Building on the work of one of the founding members, Dr. Jim Ehleringer, the lab has been responsible for improving and expanding existing networks of instrumentation, developing and implementing new networks with different aims, and building an on campus facility for research, development, and student outreach. UATAQ specializes in the long term measurement of both mobile and in-situ trace gas and criteria pollutants. Our data is calibrated to international standards and we possess numerous years of experience in collecting trace gas data, including one of the longest continuous urban CO<sub>2</sub> records in the nation.
 
 ### People
 
-[Ben Fasoli](https://benfasoli.com)  
-Research Associate
+[John C. Lin](http://lair.utah.edu)
+Professor, Atmospheric Sciences
 
-[Maria Garcia](mailto:mag10@utah.edu)  
+[Maria Garcia](mailto:mag10@utah.edu)
 UATAQ Lab Manager
 
-[John C. Lin](http://lair.utah.edu)  
-Associate Professor, Atmospheric Sciences
+[James Mineau](jamesmineau.chpc.utah.edu)
+UATAQ Data Manager, NSF Research Fellow
 
-[David Bowling](http://biologylabs.utah.edu/bowling/)  
-Associate Professor, Biology
+[Nic Hofmann](mailto:nic.hofmann@utah.edu)
+Graduate Research Assistant, Lab Technician
 
-[James Ehleringer](http://www.biology.utah.edu/people/details.php?id=104)  
+[Haley Humble](mailto:u1367772@utah.edu)
+Graduate Research Assistant, Lab Technician
+
+[Megan Ostile](mailto:megan.ostlie@hsc.utah.edu)
+Lab Technician
+
+[Ben Fasoli](https://benfasoli.com)
+Research Associate
+
+[David Bowling](https://bowling.biology.utah.edu)
+Professor, Biology
+
+[James Ehleringer](https://ecophys.utah.edu)
 Distinguished Professor, Biology
 
 ### Support

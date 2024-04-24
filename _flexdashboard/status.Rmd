@@ -224,7 +224,7 @@ subplot(
       layout(xaxis = list(title = NA),
              yaxis = list(title = 'RMSE'),
              showlegend = F),
-    plot_ly(pd, x = ~Time_UTC, y = ~abs(CO2d_ppm_cal - CO2d_ppm_meas), color = ~stid,
+    plot_ly(pd, x = ~Time_UTC, y = ~abs(CO2d_ppm_cal - CO2d_ppm_raw), color = ~stid,
             type = 'scattergl', mode = 'lines', colors = colors) %>%
       layout(xaxis = list(title = NA),
              yaxis = list(title = 'Correction'),
@@ -296,7 +296,7 @@ subplot(
       layout(xaxis = list(title = NA),
              yaxis = list(title = 'RMSE'),
              showlegend = F),
-    plot_ly(pd, x = ~Time_UTC, y = ~abs(CH4d_ppm_cal - CH4d_ppm_meas), color = ~stid,
+    plot_ly(pd, x = ~Time_UTC, y = ~abs(CH4d_ppm_cal - CH4d_ppm_raw), color = ~stid,
             type = 'scattergl', mode = 'lines', colors = colors) %>%
       layout(xaxis = list(title = NA),
              yaxis = list(title = 'Correction'),

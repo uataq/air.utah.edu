@@ -348,7 +348,7 @@ log_content <- sapply(log_files, function(file) {
   content <- read_file(con)
   close(con)
 
-  pattern <- 'Run: (\\w+)\\s\\|\\s(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}) MTN(?:(?!Run:)[\\s\\S])+'
+  pattern <- 'Run: (\\w+)\\s\\|\\s(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2})(?:(?!Run:)[\\s\\S])+'
   runs <- as.data.frame(str_match_all(content, pattern))
   colnames(runs) <- c('content', 'stid', 'Time_UTC')
 

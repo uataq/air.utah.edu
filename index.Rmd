@@ -45,9 +45,9 @@ fixed_data <- data[!data$is_mobile, ]
 
 # Resample to align data from different instruments
 
-# For fixed sites, average the last 10 minutes of data
+# For fixed sites, average the last 15 minutes of data
 fixed_data <- fixed_data %>%
-  filter(Time_UTC >= max(Time_UTC) - 600) %>%
+  filter(Time_UTC >= max(Time_UTC) - 60 * 15) %>%
   group_by(stid) %>%
   mutate(Time_UTC = max(Time_UTC)) %>%
   group_by(is_mobile, lati, long, variable, Time_UTC, .add = T) %>%

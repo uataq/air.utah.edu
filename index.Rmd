@@ -84,9 +84,7 @@ data <- data %>%
               names_from = variable, values_from = value,
               unused_fn = list(is_mobile = any, is_most_recent = any)) %>%
   # Get site name from config
-  inner_join(dplyr::select(site_config, stid, name), by = 'stid') %>%
-  # Sort by time to ensure most recent data is on top
-  arrange(Time_UTC)
+  inner_join(dplyr::select(site_config, stid, name), by = 'stid')
 
 # Filter variables to only those with data
 variables <- variables[variables$variable %in% colnames(data), ]
@@ -132,7 +130,7 @@ data <- data %>%
   ungroup()
 
 # Initialize map
-map <- leaflet(data = data, width = '100%', height = '100%',
+map <- leaflet(width = '100%', height = '100%',
                options = leafletOptions(
                  maxZoom = 13
                )) %>%
@@ -181,21 +179,31 @@ map <- htmlwidgets::onRender(map, "
 for (i in seq_len(nrow(variables))) {
   var <- variables$variable[i]
 
+  # Sort data for each variable
+  # Leaflet displays bottom rows on top
+  var_data <- data %>%
+    arrange(desc(is_mobile),  # Fixed sites on top
+            is_most_recent,  # Then most recent mobile point
+            desc(is.na(data[[var]])),  # Then valid data
+            Time_UTC)  # Finally, sort by time
+
   color_range <- c(variables$min[i], variables$max[i])
   pal <- colorNumeric('RdYlBu', color_range, reverse = T,
                       na.color = '#d6d6d6')
 
   # Format as character vector for label placement
-  label <- as.character(data[[var]])
-  label[data$is_mobile] <- NA
+  label <- as.character(var_data[[var]])
+  label[var_data$is_mobile] <- NA  # dont show mobile labels
 
   # Rescale values to within color range
-  color_values <- data[[var]]
+  color_values <- var_data[[var]]
   color_values[color_values < color_range[1]] <- color_range[1]
   color_values[color_values > color_range[2]] <- color_range[2]
 
   map <- map %>%
-    addCircleMarkers(~long, ~lati, popup = ~popup,
+    addCircleMarkers(data = var_data,
+                     lat = ~lati, lng = ~long,
+                     popup = ~popup,
                      radius = ~radius,
                      opacity = 0.3, weight = ~stroke_weight,
                      color = ~color, group = variables$long_name[i],

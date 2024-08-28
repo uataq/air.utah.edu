@@ -25,6 +25,18 @@ two_hours_ago <- today - 7200  # mobile data
 # Greenhouse gas instruments
 ghg_instruments <- c('lgr_ugga', 'licor_7000', 'licor_6262')
 
+# Meta columns
+meta_cols <- c('Time_UTC', 'QAQC_Flag')
+gps_cols <- c('Pi_Time', 'Latitude_deg', 'Longitude_deg')
+
+# GHG columns
+ghg_cols <- c('CO2d_ppm', 'CH4d_ppm', 'H2O_ppm',
+              'Flow_mLmin', 'Cavity_P_torr',
+              'ID_CO2', 'ID_CH4')
+
+# Non GHG variables
+non_ghg_vars <- c('O3_ppb', 'NO2_ppb', 'NO_ppb', 'PM2.5_ugm3', 'CO_ppb', 'BC6_ngm3')
+
 
 get_instrument_files <- function(stid, lvl, subset = 'all') {
   base_path <- file.path('data', stid)
@@ -57,20 +69,23 @@ get_instrument_files <- function(stid, lvl, subset = 'all') {
 }
 
 
+merge_instrument_data <- function(instrument_files, select = NULL) {
+  if (is.null(instrument_files)) return(NULL)
+  df <- suppressWarnings(rbindlist(lapply(instrument_files, fread,
+                                          showProgress = F,
+                                          select = select),
+                                          fill = T))
+  return(df)
+}
+
+
 data <- list()
 
 # QAQC Data
 data$qaqc <- rbindlist(lapply(stids, function(stid) {
   instrument_files <- get_instrument_files(stid, 'qaqc', subset = 'ghg')
-  if (is.null(instrument_files)) return(NULL)
-  instrument <- names(instrument_files)[1]
-  columns <- c('Time_UTC', 'CO2d_ppm', 'CH4d_ppm', 'H2O_ppm',
-               'Flow_mLmin', 'Cavity_P_torr',
-               'ID_CO2', 'ID_CH4', 'QAQC_Flag')
-  files <- instrument_files[[instrument]]
-  df <- suppressWarnings(rbindlist(lapply(files, fread,
-                                          showProgress = F,
-                                          select = columns)))
+  df <- merge_instrument_data(instrument_files, select = c(meta_cols, ghg_cols))
+  if (is.null(df)) return(NULL)
   df$stid <- stid
   return(df)
 }), fill = T)
@@ -78,23 +93,24 @@ data$qaqc <- rbindlist(lapply(stids, function(stid) {
 # Calibrated Data
 data$calibrated <- rbindlist(lapply(stids, function(stid) {
   instrument_files <- get_instrument_files(stid, 'calibrated', subset = 'ghg')
-  if (is.null(instrument_files)) return(NULL)
-  instrument <- names(instrument_files)[1]
-  files <- instrument_files[[instrument]]
-  df <- rbindlist(lapply(files, fread,
-                         showProgress = F))
+  df <- merge_instrument_data(instrument_files, select = c(meta_cols, ghg_cols))
+  if (is.null(df)) return(NULL)
   df$stid <- stid
   return(df)
 }), fill = T)
 
+# Convert timestamps
+data$qaqc$Time_UTC <- fastPOSIXct(data$qaqc$Time_UTC, tz = 'UTC')
+data$calibrated$Time_UTC <- fastPOSIXct(data$calibrated$Time_UTC, tz = 'UTC')
+
+# Filter by recent data
+data$qaqc <- data$qaqc[data$qaqc$Time_UTC > ten_days_ago]
+data$calibrated <- data$calibrated[data$calibrated$Time_UTC > ten_days_ago]
+
 # Map Data
 data$map <- rbindlist(lapply(stids, function(stid) {
-  # Get final instrument files for non-ghg instruments
-  non_ghg_files <- get_instrument_files(stid, 'final', subset = 'non-ghg')
-
-  # Use QAQC data for GHG (final data only updates after calibration)
-  ghg <- data$qaqc[ , data$qaqc[stid == ..stid]]
-
+  # Get qaqc instrument files for non-ghg instruments
+  non_ghg_files <- get_instrument_files(stid, 'qaqc', subset = 'non-ghg')
   # Check for GPS data
   is_mobile <- 'gps' %in% names(non_ghg_files)
   if (is_mobile) {
@@ -102,40 +118,37 @@ data$map <- rbindlist(lapply(stids, function(stid) {
     non_ghg_files <- non_ghg_files[-grep('gps', names(non_ghg_files))]
   }
 
-  if ((is.null(non_ghg_files) || length(non_ghg_files) == 0)
-      & (is.null(ghg) || nrow(ghg) == 0)) return(NULL)
+  site_data <- list()
 
-  # Get non-ghg instrument data
-  inst_dfs <- lapply(seq_along(non_ghg_files), function(i) {
-    instrument <- names(non_ghg_files)[i]
-    files <- non_ghg_files[[instrument]]
-
-    inst_df <- rbindlist(lapply(files, fread, showProgress = F))
-
-    return(inst_df)
-  }) %>%
-    purrr::discard(is.null)
-
-  # 'finalize' ghg data
+  # Use QAQC data for GHG (final data only updates after calibration)
+  ghg <- data$qaqc[ , data$qaqc[stid == ..stid]]
+  # Drop calibration data and filter ghg columns
   if (!is.null(ghg) && nrow(ghg) > 0) {
     ghg <- ghg %>%
-      dplyr::filter(QAQC_Flag >= 0,
-                    ID_CO2 == -10) %>%
-      select(Time_UTC, CO2d_ppm, CH4d_ppm)
-
-    inst_dfs <- c(list(ghg), inst_dfs)
+      dplyr::filter(ID_CO2 == -10) %>%
+      select(Time_UTC, CO2d_ppm, CH4d_ppm, QAQC_Flag)
+    site_data$ghg <- ghg
   }
 
-  # Combine instrument data
-  df <- inst_dfs %>%
+  # Use QAQC data for non-ghg instruments
+  if (!is.null(non_ghg_files) && length(non_ghg_files) > 0) {
+    # Get non-ghg data
+    non_ghg <- merge_instrument_data(non_ghg_files, select = c(meta_cols, non_ghg_vars))
+    # Format non-ghg time, truncate to seconds, and filter to past 10 days
+    non_ghg$Time_UTC <- as.POSIXct(trunc(fastPOSIXct(non_ghg$Time_UTC, tz = 'UTC'),
+                                        'secs'))
+    non_ghg <- non_ghg[non_ghg$Time_UTC > ten_days_ago, ]
+    site_data$non_ghg <- non_ghg
+  }
+
+  df <- site_data %>%
+    # Merge data
     rbindlist(fill = T) %>%
+    # Filter out bad data
+    # dplyr::filter(QAQC_Flag >= 0) %>%
+    select(-QAQC_Flag) %>%
     # Gather data into long format
     gather(variable, value, -Time_UTC, na.rm = T)
-
-  # Format time, truncate to seconds, and filter to past 10 days
-  df$Time_UTC <- as.POSIXct(trunc(fastPOSIXct(df$Time_UTC, tz = 'UTC'),
-                                  'secs'))
-  df <- df[df$Time_UTC > ten_days_ago, ]
 
   if (nrow(df) == 0) return(NULL)
 
@@ -144,14 +157,15 @@ data$map <- rbindlist(lapply(stids, function(stid) {
 
   if (is_mobile && length(gps_files) > 0) {
     # Merge with GPS data if mobile
-    gps_cols <- c('Time_UTC', 'Pi_Time', 'Latitude_deg', 'Longitude_deg')
     gps <- rbindlist(lapply(gps_files, fread,
                             showProgress = F,
-                            select = gps_cols))
+                            select = c(meta_cols, gps_cols)))
     gps$Time_UTC <- fastPOSIXct(gps$Time_UTC, tz = 'UTC')
     gps$Pi_Time <- fastPOSIXct(gps$Pi_Time, tz = 'UTC')
     gps <- gps %>%
-      filter(Time_UTC > two_hours_ago) %>%
+      dplyr::filter(QAQC_Flag >= 0,  # Filter out bad gps data
+                    Time_UTC > two_hours_ago) %>%
+      select(-QAQC_Flag) %>%
       mutate(Pi_Time = as.POSIXct(trunc(Pi_Time, 'secs'))) %>% # Truncate to sec
       distinct(Pi_Time, .keep_all = T) %>%  # Remove duplicate times
       rename(lati = Latitude_deg, long = Longitude_deg)
@@ -175,12 +189,5 @@ data$map <- rbindlist(lapply(stids, function(stid) {
   return(arrange(df, Time_UTC))  # Sort each site's data by time
 }), fill = T)
 
-# Convert timestamps
-data$qaqc$Time_UTC <- fastPOSIXct(data$qaqc$Time_UTC, tz = 'UTC')
-data$calibrated$Time_UTC <- fastPOSIXct(data$calibrated$Time_UTC, tz = 'UTC')
-
-# Filter by recent data
-data$qaqc <- data$qaqc[data$qaqc$Time_UTC > ten_days_ago]
-data$calibrated <- data$calibrated[data$calibrated$Time_UTC > ten_days_ago]
 
 saveRDS(data, 'air.utah.edu/_data.rds')

@@ -93,7 +93,7 @@ data$qaqc <- rbindlist(lapply(stids, function(stid) {
 # Calibrated Data
 data$calibrated <- rbindlist(lapply(stids, function(stid) {
   instrument_files <- get_instrument_files(stid, 'calibrated', subset = 'ghg')
-  df <- merge_instrument_data(instrument_files, select = c(meta_cols, ghg_cols))
+  df <- merge_instrument_data(instrument_files)
   if (is.null(df)) return(NULL)
   df$stid <- stid
   return(df)

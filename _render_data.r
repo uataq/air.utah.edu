@@ -135,8 +135,7 @@ data$map <- rbindlist(lapply(stids, function(stid) {
     # Get non-ghg data
     non_ghg <- merge_instrument_data(non_ghg_files, select = c(meta_cols, non_ghg_vars))
     # Format non-ghg time, truncate to seconds, and filter to past 10 days
-    non_ghg$Time_UTC <- as.POSIXct(trunc(fastPOSIXct(non_ghg$Time_UTC, tz = 'UTC'),
-                                        'secs'))
+    non_ghg$Time_UTC <- fastPOSIXct(non_ghg$Time_UTC, tz = 'UTC')
     non_ghg <- non_ghg[non_ghg$Time_UTC > ten_days_ago, ]
     site_data$non_ghg <- non_ghg
   }
@@ -172,6 +171,7 @@ data$map <- rbindlist(lapply(stids, function(stid) {
 
     df <- df %>%
       rename(Pi_Time = Time_UTC) %>%  # rename to match gps
+      mutate(Pi_Time = trunc(Pi_Time, 'secs')) %>%  # Truncate to sec
       inner_join(gps, by = 'Pi_Time') %>%  # join on Pi_Time
       select(-Pi_Time) %>%
       # Keep only the most recent point for each location

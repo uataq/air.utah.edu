@@ -14,31 +14,31 @@ The Utah Atmospheric Trace Gas & Air Quality (UATAQ) lab was started in 2013 as 
 
 ### People
 
-[John C. Lin](http://lair.utah.edu)
+[John C. Lin](https://lair.utah.edu)  
 Professor, Atmospheric Sciences
 
-[Maria Garcia](mailto:mag10@utah.edu)
+[Maria Garcia](mailto:mag10@utah.edu)  
 UATAQ Lab Manager
 
-[James Mineau](jamesmineau.chpc.utah.edu)
+[James Mineau](https://jamesmineau.chpc.utah.edu)  
 UATAQ Data Manager, NSF Research Fellow
 
-[Nic Hofmann](mailto:nic.hofmann@utah.edu)
+[Nic Hofmann](mailto:nic.hofmann@utah.edu)  
 Graduate Research Assistant, Lab Technician
 
-[Haley Humble](mailto:u1367772@utah.edu)
+[Haley Humble](mailto:u1367772@utah.edu)  
 Graduate Research Assistant, Lab Technician
 
-[Megan Ostile](mailto:megan.ostlie@hsc.utah.edu)
+[Megan Ostile](mailto:megan.ostlie@hsc.utah.edu)  
 Lab Technician
 
-[Ben Fasoli](https://benfasoli.com)
+[Ben Fasoli](https://benfasoli.com)  
 Research Associate
 
-[David Bowling](https://bowling.biology.utah.edu)
+[David Bowling](https://bowling.biology.utah.edu)  
 Professor, Biology
 
-[James Ehleringer](https://ecophys.utah.edu)
+[James Ehleringer](https://ecophys.utah.edu)  
 Distinguished Professor, Biology
 
 ### Support

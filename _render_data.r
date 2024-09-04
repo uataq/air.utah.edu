@@ -71,7 +71,7 @@ get_instrument_files <- function(stid, lvl, subset = 'all') {
 
 merge_instrument_data <- function(instrument_files, select = NULL) {
   if (is.null(instrument_files)) return(NULL)
-  df <- suppressWarnings(rbindlist(lapply(instrument_files, fread,
+  df <- suppressWarnings(rbindlist(lapply(unlist(instrument_files), fread,
                                           showProgress = F,
                                           select = select),
                                           fill = T))

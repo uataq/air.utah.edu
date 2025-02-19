@@ -140,6 +140,8 @@ data$map <- rbindlist(lapply(stids, function(stid) {
     site_data$non_ghg <- non_ghg
   }
 
+  if (length(site_data) == 0) return(NULL)
+
   df <- site_data %>%
     # Merge data
     rbindlist(fill = T) %>%

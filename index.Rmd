@@ -109,10 +109,11 @@ data <- data %>%
     '<b>', name, '</b>', ' (', toupper(stid), ')<br>',
     strftime(Time_UTC, tz = 'America/Denver', format = '%b %d %I:%M %p %Z<br>'),
     '<table>',
-    paste0(lapply(variables$variable, function(var) {
-      x <- get(var)
-      num_spaces <- (6 - nchar(sub('\\..*', '', x)))
-      meta <- variables[variables$variable == var, ]
+    paste0(lapply(variables$variable, function(variable) {
+      x <- dplyr::pick(as.character(variable))
+      num_spaces <- (6 - nchar(sub('\\..*', '', as.character(x))))
+      num_spaces <- pmax(0, num_spaces)  # ensure non-negative
+      meta <- variables[variables$variable == variable, ]
       ifelse(is.na(x), '',
              paste0('<tr><td>', meta$short_name, '</td>',
                     '<td><b><span style=\"visibility:hidden\">',

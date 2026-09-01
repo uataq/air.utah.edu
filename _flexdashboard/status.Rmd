@@ -202,14 +202,21 @@ pd_ref_fits <- pd_ref %>%
   filter(!is.na(CO2d_ppm), !is.na(ID_CO2)) %>%
   group_by(stid) %>%
   do({
-    mod <- lm(CO2d_ppm ~ ID_CO2, data = .)
-    data.frame(
-      stid = .$stid[1],
-      x = min(.$ID_CO2),
-      xend = max(.$ID_CO2),
-      y = predict(mod, data.frame(ID_CO2 = min(.$ID_CO2))),
-      yend = predict(mod, data.frame(ID_CO2 = max(.$ID_CO2)))
-    )
+    # do() evaluates once on an empty frame when no rows survive the filters;
+    # keep the columns so downstream add_segments() can still reference them
+    if (nrow(.) < 2) {
+      data.frame(stid = character(), x = numeric(), xend = numeric(),
+                 y = numeric(), yend = numeric())
+    } else {
+      mod <- lm(CO2d_ppm ~ ID_CO2, data = .)
+      data.frame(
+        stid = .$stid[1],
+        x = min(.$ID_CO2),
+        xend = max(.$ID_CO2),
+        y = predict(mod, data.frame(ID_CO2 = min(.$ID_CO2))),
+        yend = predict(mod, data.frame(ID_CO2 = max(.$ID_CO2)))
+      )
+    }
   }) %>%
   ungroup()
 subplot(
@@ -269,19 +276,26 @@ subplot(
 
 ### CH<sub>4</sub> Calibrations
 ```{r CH4 Calibrations}
-pd_ref <- filter(pd_ref, !is.na(ID_CH4))
+pd_ref <- filter(pd_ref, !is.na(CH4d_ppm), !is.na(ID_CH4))
 pd_ref_error <- filter(pd_ref_error, !is.na(`ch4 err`))
 pd_ref_fits <- pd_ref %>%
   group_by(stid) %>%
   do({
-    mod <- lm(CH4d_ppm ~ ID_CH4, data = .)
-    data.frame(
-      stid = .$stid[1],
-      x = min(.$ID_CH4),
-      xend = max(.$ID_CH4),
-      y = predict(mod, data.frame(ID_CH4 = min(.$ID_CH4))),
-      yend = predict(mod, data.frame(ID_CH4 = max(.$ID_CH4)))
-    )
+    # do() evaluates once on an empty frame when no rows survive the filters;
+    # keep the columns so downstream add_segments() can still reference them
+    if (nrow(.) < 2) {
+      data.frame(stid = character(), x = numeric(), xend = numeric(),
+                 y = numeric(), yend = numeric())
+    } else {
+      mod <- lm(CH4d_ppm ~ ID_CH4, data = .)
+      data.frame(
+        stid = .$stid[1],
+        x = min(.$ID_CH4),
+        xend = max(.$ID_CH4),
+        y = predict(mod, data.frame(ID_CH4 = min(.$ID_CH4))),
+        yend = predict(mod, data.frame(ID_CH4 = max(.$ID_CH4)))
+      )
+    }
   }) %>%
   ungroup()
 subplot(

@@ -36,6 +36,14 @@ variables <- tribble(
 # Read data
 data <- readRDS('_data.rds')$map
 
+# Carto basemap API key. Kept out of git in a local .Renviron file
+# (CARTO_API_KEY=...) next to this Rmd; readRenviron() loads it regardless of
+# which user/cwd the render is launched from.
+if (file.exists('.Renviron')) readRenviron('.Renviron')
+carto_key <- Sys.getenv('CARTO_API_KEY')
+if (!nzchar(carto_key)) warning('CARTO_API_KEY not set - basemap tiles will fail to load')
+carto_tiles <- paste0('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png?key=', carto_key)
+
 # Filter data by valid variables
 data <- data[data$variable %in% variables$variable, ]
 
@@ -135,7 +143,7 @@ map <- leaflet(width = '100%', height = '100%',
                options = leafletOptions(
                  maxZoom = 13
                )) %>%
-  addTiles('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
+  addTiles(carto_tiles,
            attribution = paste(sep = ' | ',
                                '<span id="attribution-names">Ben Fasoli & James Mineau</span>',
                                'Map data &copy; CartoDB/Esri',

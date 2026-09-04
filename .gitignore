@@ -17,3 +17,6 @@ data.html
 index.html
 nerdmobile-rental.html
 shire.html
+
+# local secrets (Carto API key)
+.Renviron

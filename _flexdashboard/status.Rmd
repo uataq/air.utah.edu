@@ -652,8 +652,9 @@ inst_checks_panel <- function(insts) {
       x <- site[[ck$variable[i]]][match(hours, site$Time_UTC)]
       mark <- ifelse(is.na(off[, i]), '  ', ifelse(off[, i] > 100, '<b>x</b>',
                                                   ifelse(off[, i] > 80, '<b>!</b>', '&nbsp;&nbsp;')))
-      sprintf('%s %s %.4g <span style="color:#999">(%g to %g)</span>',
-              mark, ck$variable[i], x, ck$lo[i], ck$hi[i])
+      sprintf('%s %s %s <span style="color:#999">(%g to %g)</span>',
+              mark, ck$variable[i], formatC(x, digits = 4, format = 'fg'),
+              ck$lo[i], ck$hi[i])
     })
     lines <- matrix(lines, nrow = length(hours))
     z <- c(z, list(pmin(worst, 200) / 2))  # 0-100, limit at 50

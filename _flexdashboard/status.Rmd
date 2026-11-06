@@ -28,6 +28,9 @@ units_of <- function(var) {
 # plots with different sites. The GHG sites keep the colors that spread gives
 # them across all GHG sites; sites with only air quality instruments get
 # colors from outside that palette.
+# Sites on the status grid: the top row is as tall as the grid (about 33 px a
+# site plus the header), and the diel beside it takes the same height
+n_grid_sites <- length(unique(c(data$qaqc$stid, data$instruments$last_seen$stid)))
 site_colors <- local({
   ghg_sites <- sort(unique(data$qaqc$stid))
   ghg <- setNames(scales::col_factor(colors, domain = ghg_sites)(ghg_sites), ghg_sites)
@@ -37,10 +40,10 @@ site_colors <- local({
 })
 ```
 
-Row {data-height=380}
+Row {data-height=`r 75 + 33 * n_grid_sites`}
 ------------------------------------------------------------------------------------------
 
-### Average Diel Cycle (10-day) <span style="float:right;"><a href="/s/diagnostics/"><i class="fa fa-bar-chart"></i> Timeseries Diagnostics</a></span> {data-width=900}
+### Average Diel Cycle (10-day, Mountain Time) <span style="float:right;"><a href="/s/diagnostics/"><i class="fa fa-bar-chart"></i> Timeseries Diagnostics</a></span> {data-width=750}
 ```{r Diel Cycle}
 # One plot, one species at a time, picked with the buttons above it: CO2,
 # CH4, H2O, then every species the other instruments measure (O3, NO, NO2, CO,
@@ -101,12 +104,13 @@ buttons <- lapply(diel_vars, function(v) {
                    list(yaxis = list(title = diel_title(v), autorange = TRUE))))
 })
 p %>%
-  layout(xaxis = list(title = 'Hour (Mountain)', tickvals = seq(0, 21, 3)),
+  layout(xaxis = list(title = NA, tickvals = seq(0, 21, 3),
+                      ticksuffix = ':00'),
          yaxis = list(title = diel_title(diel_vars[1])),
-         # sites of the species shown, to the right of the buttons
-         showlegend = T, margin = list(t = 50),
-         legend = list(orientation = 'h', x = 1, xanchor = 'right',
-                       y = 1.02, yanchor = 'bottom'),
+         # sites of the species shown, in a row under the plot
+         showlegend = T, margin = list(t = 50, b = 10),
+         legend = list(orientation = 'h', x = 0.5, xanchor = 'center',
+                       y = -0.1, yanchor = 'top'),
          updatemenus = list(list(type = 'buttons', direction = 'right',
                                  buttons = buttons, showactive = TRUE,
                                  x = 0, xanchor = 'left', y = 1.02, yanchor = 'bottom',
@@ -114,7 +118,7 @@ p %>%
                                  bordercolor = '#ddd', font = list(size = 12))))
 ```
 
-### Network Diagnostics (1-day) <span style="float:right;"><a href="https://github.com/uataq/data-pipeline/blob/main/QAQC_Flags.md#qaqc-flags"><i class="fa fa-bars"></i> QAQC Definitions</a></span> {data-width=700}
+### Network Diagnostics (1-day) <span class="info-tip" tabindex="0"><i class="fa fa-info-circle"></i><span class="info-pop">Latest hourly value of each species, passing QAQC or not.<br><span style="color: white; background-color: #FFB20F; border-radius: 5px; padding: 0 5px;">orange</span> under 90% of the past day passing QAQC, or noisy (ptp over its limit).<br><span style="color: white; background-color: #ED254E; border-radius: 5px; padding: 0 5px;">red</span> silent over 2 hours, under 50% passing, or reference error over its limit.<br>Hover a cell for last seen, flags, ptp and err.</span></span> <span style="float:right;"><a href="https://github.com/uataq/data-pipeline/blob/main/QAQC_Flags.md#qaqc-flags"><i class="fa fa-bars"></i> QAQC Definitions</a></span> {data-width=850}
 ```{r Network Diagnostics}
 # A grid of every site (rows) and every species it measures (columns), for the
 # greenhouse gas and air quality instruments alike. Like the map, the columns
@@ -267,11 +271,18 @@ grid_units <- cells$units[match(grid_species, cells$species)]
 sites <- sort(unique(cells$stid))
 site_seen <- cells %>% group_by(stid) %>% summarize(last_seen = min(last_seen))
 
+# Times: '21:15' today, 'Nov 04 21:15' before (Mountain Time)
+short_time <- function(t) {
+  today_mt <- format(Sys.time(), tz = 'America/Denver', '%Y-%m-%d')
+  ifelse(format(t, tz = 'America/Denver', '%Y-%m-%d') == today_mt,
+         format(t, tz = 'America/Denver', '%H:%M'),
+         format(t, tz = 'America/Denver', '%b %d %H:%M'))
+}
+unit_line <- function(u) paste0('<br><span class="grid-unit">', u, '</span>')
 header <- paste0('<th style="text-align: left;">stid</th>',
-                 '<th style="text-align: right;">last seen</th>',
+                 '<th style="text-align: right;">last seen', unit_line('MT'), '</th>',
                  paste0('<th style="text-align: center;">', species_label(grid_species),
-                        ' <span style="font-weight: normal; color: #999; font-size: 85%;">',
-                        grid_units, '</span></th>', collapse = ''))
+                        unit_line(grid_units), '</th>', collapse = ''))
 rows <- sapply(sites, function(s) {
   seen <- site_seen$last_seen[site_seen$stid == s]
   tds <- sapply(grid_species, function(sp) {
@@ -283,8 +294,7 @@ rows <- sapply(sites, function(s) {
   })
   paste0('<tr><td>', s, '</td>',
          '<td style="text-align: right;">',
-         badge(format(seen, tz = 'America/Denver', '%b %d %H:%M %Z'),
-               ifelse(seen < Sys.time() - 2 * 3600, 3, 1)),
+         badge(short_time(seen), ifelse(seen < Sys.time() - 2 * 3600, 3, 1)),
          '</td>', paste(tds, collapse = ''), '</tr>')
 })
 # Hover pop-up for each cell: a hidden box in the cell, shown by CSS
@@ -297,15 +307,24 @@ tip_css <- '<style>
   padding: 6px 10px; box-shadow: 0 2px 8px rgba(0,0,0,.2);
 }
 .grid-tip:hover .grid-pop { display: block; }
+.grid-table th, .grid-table td { white-space: nowrap; }
+.grid-table th { vertical-align: bottom !important; line-height: 1.2; }
+.grid-unit { font-weight: normal; color: #999; font-size: 80%; }
+/* the (i) next to the title: what the colors mean, on hover or tap */
+.info-tip { position: relative; color: #999; cursor: help; margin-left: 4px; outline: none; }
+.info-pop {
+  display: none; position: absolute; left: 0; top: 150%; z-index: 1000;
+  width: 360px; white-space: normal; font-size: 12px; line-height: 1.8;
+  background: white; color: #333; border: 1px solid #ddd; border-radius: 5px;
+  padding: 8px 10px; box-shadow: 0 2px 8px rgba(0,0,0,.2);
+}
+.info-tip:hover .info-pop, .info-tip:focus .info-pop { display: block; }
+.chart-title { overflow: visible !important; }
 </style>'
 htmltools::HTML(paste0(
   tip_css,
-  '<table class="table table-condensed"><thead><tr>', header, '</tr></thead><tbody>',
-  paste(rows, collapse = ''), '</tbody></table>',
-  '<p style="color: #999; font-size: 85%;">Latest hourly value of each species, passing QAQC or not. ',
-  badge('orange', 2), ' under 90% of the past day passing QAQC, or noisy. ',
-  badge('red', 3), ' silent over 2 hours, under 50% passing, or reference error ',
-  'over its limit. Hover a cell for last seen, flags, ptp and err.</p>'
+  '<table class="table table-condensed grid-table"><thead><tr>', header, '</tr></thead><tbody>',
+  paste(rows, collapse = ''), '</tbody></table>'
 ))
 ```
 

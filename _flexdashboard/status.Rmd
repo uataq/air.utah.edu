@@ -28,7 +28,8 @@ units_of <- function(var) {
 # plots with different sites. The GHG sites keep the colors that spread gives
 # them across all GHG sites; sites with only air quality instruments get
 # colors from outside that palette.
-# Sites on the status grid, to size the top row so the grid always fits
+# Sites on the status grid: the top row is as tall as the grid (about 33 px a
+# site plus the header), and the diel beside it takes the same height
 n_grid_sites <- length(unique(c(data$qaqc$stid, data$instruments$last_seen$stid)))
 site_colors <- local({
   ghg_sites <- sort(unique(data$qaqc$stid))
@@ -39,7 +40,7 @@ site_colors <- local({
 })
 ```
 
-Row {data-height=`r 130 + 37 * n_grid_sites`}
+Row {data-height=`r 75 + 33 * n_grid_sites`}
 ------------------------------------------------------------------------------------------
 
 ### Average Diel Cycle (10-day, Mountain Time) <span style="float:right;"><a href="/s/diagnostics/"><i class="fa fa-bar-chart"></i> Timeseries Diagnostics</a></span> {data-width=750}

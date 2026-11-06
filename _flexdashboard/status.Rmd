@@ -605,7 +605,8 @@ inst_species_panel <- function(insts, var, legend_sites = c()) {
 # hour, colored by its worst check that hour: how far the value sits from the
 # middle of its allowed range (limits from QAQC_Flags.md). Pale green is
 # mid-range, orange near a limit, red outside one. Hovering lists every check
-# with its value and limits: x outside, ! near a limit (outer 10%).
+# with its value and limits, the value red outside a limit and orange near one
+# (outer 10% of the range).
 check_colorscale <- list(list(0, '#E3F2E1'), list(0.3, '#E3F2E1'),
                          list(0.4999, '#FFB20F'), list(0.5, '#ED254E'),
                          list(1, '#ED254E'))
@@ -650,11 +651,13 @@ inst_checks_panel <- function(insts) {
     worst <- apply(off, 1, function(o) if (all(is.na(o))) NA else max(o, na.rm = T))
     lines <- sapply(seq_len(nrow(ck)), function(i) {
       x <- site[[ck$variable[i]]][match(hours, site$Time_UTC)]
-      mark <- ifelse(is.na(off[, i]), '  ', ifelse(off[, i] > 100, '<b>x</b>',
-                                                  ifelse(off[, i] > 80, '<b>!</b>', '&nbsp;&nbsp;')))
-      sprintf('%s %s %s <span style="color:#999">(%g to %g)</span>',
-              mark, ck$variable[i], formatC(x, digits = 4, format = 'fg'),
-              ck$lo[i], ck$hi[i])
+      # The value in the grid's colors: red outside a limit, orange near one
+      value <- formatC(x, digits = 4, format = 'fg')
+      value <- ifelse(is.na(off[, i]) | off[, i] <= 80, value,
+                      sprintf('<b><span style="color:%s">%s</span></b>',
+                              ifelse(off[, i] > 100, '#ED254E', '#FFB20F'), value))
+      sprintf('%s %s <span style="color:#999">(limits %g to %g)</span>',
+              ck$variable[i], value, ck$lo[i], ck$hi[i])
     })
     lines <- matrix(lines, nrow = length(hours))
     z <- c(z, list(pmin(worst, 200) / 2))  # 0-100, limit at 50
@@ -668,7 +671,10 @@ inst_checks_panel <- function(insts) {
   plot_ly(x = hours, y = seq_along(labels), z = do.call(rbind, z),
           text = do.call(rbind, tips), hoverinfo = 'text',
           type = 'heatmap', zmin = 0, zmax = 100,
-          colorscale = check_colorscale, showscale = F, ygap = 2) %>%
+          colorscale = check_colorscale, showscale = F, ygap = 2,
+          # a white box like the status grid's pop-up
+          hoverlabel = list(bgcolor = 'white', bordercolor = '#ccc',
+                            font = list(color = '#333', size = 12))) %>%
     layout(xaxis = list(title = NA),
            yaxis = list(title = list(text = 'checks', font = list(size = 12)),
                         tickvals = seq_along(labels), ticktext = labels,

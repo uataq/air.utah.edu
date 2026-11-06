@@ -12,12 +12,12 @@ colors <- c('#323031', '#413C58', '#6B818C', '#3DCCC7', '#76F7BF',
             '#FF8360', '#E1401D')
 rmse <- function(e) sqrt(mean(e^2, na.rm = T))
 # Species names and units from column names, e.g. 'PM2.5_ugm3', 'CO2d_ppm'
-species_order <- c('CO2', 'CH4', 'O3', 'NO', 'NO2', 'CO', 'PM2.5', 'BC6')  # others follow
+species_order <- c('CO2', 'CH4', 'H2O', 'O3', 'NO', 'NO2', 'CO', 'PM2.5', 'BC6')  # others follow
 species_of <- function(var) sub('d$', '', sub('_.*', '', var))  # 'CO2d_ppm' -> 'CO2'
 species_rank <- function(sp) {
   ifelse(sp %in% species_order, match(sp, species_order), length(species_order) + 1)
 }
-species_label <- function(sp) sub('^([A-Za-z]+)([0-9.]+)$', '\\1<sub>\\2</sub>', sp)
+species_label <- function(sp) gsub('([A-Za-z])([0-9.]+)', '\\1<sub>\\2</sub>', sp)  # 'H2O' -> 'H<sub>2</sub>O'
 units_of <- function(var) {
   u <- sub('^[^_]+_', '', var)                              # 'PM2.5_ugm3' -> 'ugm3'
   ifelse(u == 'ugm3', 'ug/m3', ifelse(u == 'ngm3', 'ng/m3', u))
@@ -37,10 +37,10 @@ site_colors <- local({
 })
 ```
 
-Row {data-height=345}
+Row {data-height=380}
 ------------------------------------------------------------------------------------------
 
-### Network Diagnostics (1-day) <span style="float:right;"><a href="https://github.com/uataq/data-pipeline/blob/main/QAQC_Flags.md#qaqc-flags"><i class="fa fa-bars"></i> QAQC Definitions</a></span>
+### Network Diagnostics (1-day) <span style="float:right;"><a href="https://github.com/uataq/data-pipeline/blob/main/QAQC_Flags.md#qaqc-flags"><i class="fa fa-bars"></i> QAQC Definitions</a></span> {data-width=700}
 ```{r Network Diagnostics}
 # A grid of every site (rows) and every species it measures (columns), for the
 # greenhouse gas and air quality instruments alike. Like the map, the columns
@@ -236,88 +236,77 @@ htmltools::HTML(paste0(
 ```
 
 
-Row {data-height=540}
-------------------------------------------------------------------------------------------
-
-### Average Diel Cycle (10-day, hour of day in Mountain Time) <span style="float:right;"><a href="/s/diagnostics/"><i class="fa fa-bar-chart"></i> Timeseries Diagnostics</a></span>
+### Average Diel Cycle (10-day) <span style="float:right;"><a href="/s/diagnostics/"><i class="fa fa-bar-chart"></i> Timeseries Diagnostics</a></span> {data-width=900}
 ```{r Diel Cycle}
-ghg_diel <- list(
+# One plot, one species at a time, picked with the buttons above it. The
+# species are CO2 and CH4 (calibrated), H2O, then every species the other
+# instruments measure (O3, NO, NO2, CO, PM2.5, ...), from rows passing QAQC.
+hour_of <- function(t) as.integer(format(t, tz = 'America/Denver', format = '%H'))
+diel <- bind_rows(
   data$calibrated %>%
     filter(ID_CO2 == -10) %>%
-    group_by(hour = format(Time_UTC, tz = 'America/Denver', format = '%H'),
-             stid) %>%
-    summarize(avg = mean(CO2d_ppm_cal, na.rm = T)) %>%
-    ungroup() %>%
-    plot_ly(x = ~hour, y = ~avg, color = ~stid,
-            type = 'scattergl', mode = 'lines+markers', colors = site_colors) %>%
-    layout(xaxis = list(title = NA),
-           yaxis = list(title = 'CO2 (ppm)'),
-           showlegend = F),
+    transmute(stid, variable = 'CO2d_ppm', hour = hour_of(Time_UTC), value = CO2d_ppm_cal),
   data$calibrated %>%
     filter(ID_CH4 == -10) %>%
-    group_by(hour = format(Time_UTC, tz = 'America/Denver', format = '%H'),
-             stid) %>%
-    summarize(avg = mean(CH4d_ppm_cal, na.rm = T)) %>%
-    ungroup() %>%
-    plot_ly(x = ~hour, y = ~avg, color = ~stid,
-            type = 'scattergl', mode = 'lines+markers', colors = site_colors) %>%
-    layout(xaxis = list(title = NA),
-           yaxis = list(title = 'CH4 (ppm)'),
-           showlegend = F),
+    transmute(stid, variable = 'CH4d_ppm', hour = hour_of(Time_UTC), value = CH4d_ppm_cal),
   data$qaqc %>%
     filter(ID_CO2 == -10) %>%
-    group_by(hour = format(Time_UTC, tz = 'America/Denver', format = '%H'),
-             stid) %>%
-    summarize(avg = mean(H2O_ppm, na.rm = T)) %>%
-    ungroup() %>%
-    plot_ly(x = ~hour, y = ~avg, color = ~stid,
-            type = 'scattergl', mode = 'lines+markers', colors = site_colors) %>%
-    layout(xaxis = list(title = 'Hour'),
-           yaxis = list(title = 'H2O (ppm)'),
-           showlegend = F)
-)
+    transmute(stid, variable = 'H2O_ppm', hour = hour_of(Time_UTC), value = H2O_ppm),
+  # Any failure here leaves the greenhouse gases alone
+  tryCatch({
+    inst <- data$instruments
+    aq <- unique(inst$last_seen$instrument[!inst$last_seen$is_ghg])
+    species <- inst$checks %>%
+      filter(is_species, instrument %in% aq) %>%
+      distinct(instrument, variable)
+    bind_rows(lapply(seq_len(nrow(species)), function(i) {
+      pd <- inst$obs[[species$instrument[i]]]
+      v <- species$variable[i]
+      if (is.null(pd) || !v %in% names(pd)) return(NULL)
+      data.frame(stid = pd$stid, variable = v, hour = hour_of(pd$Time_UTC),
+                 value = pd[[v]])
+    }))
+  }, error = function(e) NULL)
+) %>%
+  filter(!is.na(value)) %>%
+  group_by(variable, stid, hour) %>%
+  summarize(avg = mean(value), .groups = 'drop')
 
-# The other species from the species tabs (O3, NO, NO2, CO, PM2.5, ...), from
-# rows passing QAQC, below the GHG panels. Any failure leaves the GHG panels alone.
-diel_panels <- tryCatch({
-  inst <- data$instruments
-  aq <- unique(inst$last_seen$instrument[!inst$last_seen$is_ghg])
-  species <- inst$checks %>%
-    filter(is_species, instrument %in% aq) %>%
-    distinct(instrument, variable)
-  diel <- bind_rows(lapply(seq_len(nrow(species)), function(i) {
-    pd <- inst$obs[[species$instrument[i]]]
-    v <- species$variable[i]
-    if (is.null(pd) || !v %in% names(pd)) return(NULL)
-    data.frame(stid = pd$stid, variable = v, value = pd[[v]],
-               hour = format(pd$Time_UTC, tz = 'America/Denver', format = '%H'))
-  })) %>%
-    filter(!is.na(value)) %>%
-    group_by(variable, stid, hour) %>%
-    summarize(avg = mean(value), .groups = 'drop')
-  vars <- unique(diel$variable)
-  vars <- vars[order(species_rank(species_of(vars)), vars)]
-  lapply(vars, function(v) {
-    p <- plot_ly()
-    for (st in sort(unique(diel$stid[diel$variable == v]))) {
-      d <- diel[diel$variable == v & diel$stid == st, ]
-      p <- add_trace(p, x = d$hour, y = d$avg, name = st,
-                     type = 'scattergl', mode = 'lines+markers',
-                     line = list(color = site_colors[[st]]),
-                     marker = list(color = site_colors[[st]]))
-    }
-    layout(p, xaxis = list(title = 'Hour'),
-           yaxis = list(title = paste0(species_of(v), ' (', units_of(v), ')')),
-           showlegend = F)
-  })
-}, error = function(e) list())
+diel_vars <- unique(diel$variable)
+diel_vars <- diel_vars[order(species_rank(species_of(diel_vars)), diel_vars)]
+diel_title <- function(v) paste0(species_of(v), ' (', units_of(v), ')')
 
-# Small multiples, four to a row: CO2, CH4, H2O, then the other species
-panels <- lapply(c(ghg_diel, diel_panels), function(p) {
-  layout(p, xaxis = list(title = NA, tickvals = c('00', '06', '12', '18')))
+# One trace per species and site; the buttons show one species' traces
+p <- plot_ly()
+trace_var <- c()
+for (v in diel_vars) {
+  for (st in sort(unique(diel$stid[diel$variable == v]))) {
+    d <- diel[diel$variable == v & diel$stid == st, ]
+    p <- add_trace(p, x = d$hour, y = d$avg, name = st,
+                   type = 'scatter', mode = 'lines+markers',
+                   visible = v == diel_vars[1],
+                   line = list(color = site_colors[[st]]),
+                   marker = list(color = site_colors[[st]], size = 5))
+    trace_var <- c(trace_var, v)
+  }
+}
+buttons <- lapply(diel_vars, function(v) {
+  list(label = species_label(species_of(v)), method = 'update',
+       args = list(list(visible = as.list(trace_var == v)),
+                   list(yaxis = list(title = diel_title(v), autorange = TRUE))))
 })
-subplot(panels, nrows = ceiling(length(panels) / 4), titleY = T,
-        margin = c(0.035, 0.035, 0.07, 0.03))
+p %>%
+  layout(xaxis = list(title = 'Hour (Mountain)', tickvals = seq(0, 21, 3)),
+         yaxis = list(title = diel_title(diel_vars[1])),
+         # sites of the species shown, to the right of the buttons
+         showlegend = T, margin = list(t = 50),
+         legend = list(orientation = 'h', x = 1, xanchor = 'right',
+                       y = 1.02, yanchor = 'bottom'),
+         updatemenus = list(list(type = 'buttons', direction = 'right',
+                                 buttons = buttons, showactive = TRUE,
+                                 x = 0, xanchor = 'left', y = 1.02, yanchor = 'bottom',
+                                 pad = list(r = 4, t = 0), bgcolor = '#f5f5f5',
+                                 bordercolor = '#ddd', font = list(size = 12))))
 ```
 
 
@@ -676,7 +665,7 @@ inst_checks_panel <- function(insts) {
           hoverlabel = list(bgcolor = 'white', bordercolor = '#ccc',
                             font = list(color = '#333', size = 12))) %>%
     layout(xaxis = list(title = NA),
-           yaxis = list(title = list(text = 'checks', font = list(size = 12)),
+           yaxis = list(title = list(text = 'QAQC', font = list(size = 12)),
                         tickvals = seq_along(labels), ticktext = labels,
                         autorange = 'reversed', tickfont = list(size = 11)))
 }

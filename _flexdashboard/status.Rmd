@@ -75,7 +75,7 @@ pd_ref_error <- pd_ref %>%
             `ch4 err` = sd(CH4d_ppm - ID_CH4, na.rm = T))
 
 species_order <- c('CO2', 'CH4', 'O3', 'NO', 'NO2', 'CO', 'PM2.5', 'BC6')  # others follow
-species_of <- function(var) sub('_.*', '', var)            # 'PM2.5_ugm3' -> 'PM2.5'
+species_of <- function(var) sub('d$', '', sub('_.*', '', var))  # 'CO2d_ppm' -> 'CO2'
 species_rank <- function(sp) {
   ifelse(sp %in% species_order, match(sp, species_order), length(species_order) + 1)
 }
@@ -84,8 +84,12 @@ units_of <- function(var) {
   u <- sub('^[^_]+_', '', var)                              # 'PM2.5_ugm3' -> 'ugm3'
   ifelse(u == 'ugm3', 'ug/m3', ifelse(u == 'ngm3', 'ng/m3', u))
 }
-aq_short_name <- function(inst) {
-  name <- data$aq$checks$name[match(inst, data$aq$checks$instrument)]
+inst_short_name <- function(inst) {
+  checks <- data$instruments$checks
+  name <- checks$name[match(inst, checks$instrument)]
+  # Two folders under one section (lgr_ugga, lgr_ugga_manual_cal): add the folder
+  shared <- sapply(name, function(n) length(unique(checks$instrument[checks$name == n])) > 1)
+  name <- ifelse(shared, paste0(name, ' (', inst, ')'), name)
   sub('^Teledyne ', '', name)
 }
 day_ago <- Sys.time() - 86400
@@ -107,6 +111,14 @@ ghg_limits <- tribble(
   'CO2',    'CO2d_ppm', 3,          2,
   'CH4',    'CH4d_ppm', 0.03,       0.01
 )
+# Each site's greenhouse gas analyzer, for the hover text
+ghg_names <- tryCatch(
+  as.data.frame(data$instruments$last_seen) %>%
+    filter(is_ghg) %>%
+    mutate(name = data$instruments$checks$name[match(instrument, data$instruments$checks$instrument)]) %>%
+    group_by(stid) %>%
+    summarize(instrument = paste(unique(name), collapse = ', ')),
+  error = function(e) data.frame(stid = character(), instrument = character()))
 ghg_cells <- function() {
   recent <- data$qaqc %>% filter(ID_CO2 != -99, Time_UTC > day_ago)
   site <- data$qaqc %>%
@@ -134,11 +146,11 @@ ghg_cells <- function() {
               by = c('stid', 'species')) %>%
     left_join(site, by = 'stid') %>%
     left_join(qaqc, by = 'stid') %>%
-    mutate(instrument = 'greenhouse gas analyzer')
+    left_join(ghg_names, by = 'stid')
 }
 
 aq_cells <- function() {
-  aq <- data$aq
+  aq <- data$instruments  # only its air quality instruments are used here
   qaqc <- as.data.frame(aq$flags) %>%
     group_by(stid, instrument) %>%
     mutate(pct = 100 * N / sum(N)) %>%
@@ -148,12 +160,14 @@ aq_cells <- function() {
     filter(is_species) %>%
     distinct(instrument, variable)
   as.data.frame(aq$last_seen) %>%
+    filter(!is_ghg) %>%
+    select(-is_ghg) %>%
     inner_join(species, by = 'instrument', relationship = 'many-to-many') %>%
     left_join(qaqc, by = c('stid', 'instrument')) %>%
     left_join(as.data.frame(aq$species_day), by = c('stid', 'instrument', 'variable')) %>%
     mutate(species = species_of(variable), units = units_of(variable),
            err = NA_real_, err_limit = NA_real_, ptp_limit = NA_real_,
-           instrument = data$aq$checks$name[match(instrument, data$aq$checks$instrument)]) %>%
+           instrument = data$instruments$checks$name[match(instrument, data$instruments$checks$instrument)]) %>%
     select(-variable)
 }
 
@@ -169,7 +183,7 @@ cells <- bind_rows(
       passing < 90 | (!is.na(ptp) & !is.na(ptp_limit) & ptp > ptp_limit) ~ 2,
       TRUE ~ 1),
     tip = paste0(
-      stid, ' - ', instrument,
+      stid, ' - ', coalesce(instrument, 'greenhouse gas analyzer'),
       '\nlast seen ', format(last_seen, tz = 'America/Denver', '%b %d %H:%M %Z'),
       '\n', sprintf('%.1f', passing), '% of rows passing QAQC (past day)',
       ifelse(nchar(coalesce(flags, '')) > 0, paste0('\nflags: ', flags), ''),
@@ -209,9 +223,9 @@ rows <- sapply(sites, function(s) {
   tds <- sapply(grid_species, function(sp) {
     cell <- cells[cells$stid == s & cells$species == sp, ]
     if (nrow(cell) == 0) return('<td style="text-align: center; color: #ccc;">&middot;</td>')
-    paste0('<td style="text-align: center;" title="',
+    paste0('<td style="text-align: center;"><span class="grid-tip" data-tip="',
            htmltools::htmlEscape(cell$tip, attribute = TRUE), '">',
-           badge(cell$value, cell$status), '</td>')
+           badge(cell$value, cell$status), '</span></td>')
   })
   paste0('<tr><td>', s, '</td>',
          '<td style="text-align: right;">',
@@ -219,7 +233,18 @@ rows <- sapply(sites, function(s) {
                ifelse(seen < Sys.time() - 2 * 3600, 3, 1)),
          '</td>', paste(tds, collapse = ''), '</tr>')
 })
+# Hover pop-up for each cell: the text is in data-tip, shown by CSS
+tip_css <- '<style>
+.grid-tip { position: relative; cursor: default; }
+.grid-tip:hover::after {
+  content: attr(data-tip); white-space: pre; text-align: left;
+  position: absolute; right: 0; top: 130%; z-index: 1000;
+  background: #222; color: #fff; font-size: 12px; line-height: 1.5;
+  padding: 6px 9px; border-radius: 5px; box-shadow: 0 2px 6px rgba(0,0,0,.3);
+}
+</style>'
 htmltools::HTML(paste0(
+  tip_css,
   '<table class="table table-condensed"><thead><tr>', header, '</tr></thead><tbody>',
   paste(rows, collapse = ''), '</tbody></table>',
   '<p style="color: #999; font-size: 85%;">Latest hourly value of each species. ',
@@ -230,12 +255,12 @@ htmltools::HTML(paste0(
 ```
 
 
-Row {.tabset data-height=600}
+Row {.tabset data-height=800}
 ------------------------------------------------------------------------------------------
 
-### Instrument Diagnostics (10-day)
+### GHG Diagnostics (10-day)
 
-```{r Instrument Diagnostics}
+```{r GHG Diagnostics}
 pd_h2o <- data$qaqc %>%
   filter(ID_CO2 == -10) %>%
   group_by(Time_UTC = as.POSIXct(trunc(Time_UTC, 'hours')),
@@ -445,32 +470,33 @@ subplot(
 )
 ```
 
-```{r Air Quality Panels}
-# Air quality instruments, one tab per pollutant, styled like Instrument
-# Diagnostics. Like the map, nothing here names a site or an instrument: the
+```{r Species Panels}
+# One tab per species (CO2 / CH4, O3, NO / NO2, ...), styled like GHG
+# Diagnostics, for the greenhouse gas and air quality instruments alike.
+# Like the map, nothing here names a site or an instrument: the
 # tabs come from the species the instruments with recent data measure (the
 # "measurement out of range" checks in pipeline/QAQC_Flags.md), and
 # instruments that share a species share a tab (T200 and T500u -> NO / NO2).
 # Each tab: hourly means of the species (passing rows only), then for each
 # instrument model a heatmap strip of the variables the pipeline checks it on
 # (limits from QAQC_Flags.md); hovering shows the real value.
-# With no air quality data, or any error here, no tabs are added
-aq_tabs <- tryCatch({
-  # Same site colors as the greenhouse gas panels, then air quality-only sites
-  aq_sites <- unique(c(sort(unique(data$qaqc$stid)),
-                       sort(unique(data$aq$last_seen$stid))))
-  aq_colors <- setNames(rep(colors, length.out = length(aq_sites)), aq_sites)
+# With no instrument data, or any error here, no tabs are added
+inst_tabs <- tryCatch({
+  # Same site colors as the GHG Diagnostics panels, then any other sites
+  inst_sites <- unique(c(sort(unique(data$qaqc$stid)),
+                       sort(unique(data$instruments$last_seen$stid))))
+  inst_colors <- setNames(rep(colors, length.out = length(inst_sites)), inst_sites)
 
-  aq_checks <- data$aq$checks[data$aq$checks$instrument %in% names(data$aq$obs), ]
-  aq_species <- aq_checks %>%
+  inst_checks <- data$instruments$checks[data$instruments$checks$instrument %in% names(data$instruments$obs), ]
+  inst_species <- inst_checks %>%
     filter(is_species) %>%
     distinct(instrument, variable) %>%
     mutate(species = species_of(variable))
 
   # Group species into tabs: instruments sharing a species share a tab
   groups <- list()
-  for (inst in unique(aq_species$instrument)) {
-    sp <- aq_species$species[aq_species$instrument == inst]
+  for (inst in unique(inst_species$instrument)) {
+    sp <- inst_species$species[inst_species$instrument == inst]
     hit <- which(vapply(groups, function(g) any(sp %in% g), logical(1)))
     others <- if (length(hit) > 0) groups[-hit] else groups
     groups <- c(others, list(unique(c(sp, unlist(groups[hit])))))
@@ -480,19 +506,19 @@ aq_tabs <- tryCatch({
                          sapply(groups, `[`, 1))]
   lapply(groups, function(g) {
     list(label = paste(species_label(g), collapse = ' / '),
-         instruments = unique(aq_species$instrument[aq_species$species %in% g]),
-         variables = unique(aq_species$variable[aq_species$species %in% g]))
+         instruments = unique(inst_species$instrument[inst_species$species %in% g]),
+         variables = unique(inst_species$variable[inst_species$species %in% g]))
   })
 }, error = function(e) {
-  message('Air quality tabs skipped: ', conditionMessage(e))
+  message('Species tabs skipped: ', conditionMessage(e))
   list()
 })
 
-aq_species_panel <- function(insts, var, legend_sites = c()) {
+inst_species_panel <- function(insts, var, legend_sites = c()) {
   p <- plot_ly()
   has_data <- FALSE
   for (inst in insts) {
-    pd <- data$aq$obs[[inst]]
+    pd <- data$instruments$obs[[inst]]
     if (!var %in% names(pd)) next
     attributes(pd$Time_UTC)$tzone <- 'America/Denver'
     for (s in sort(unique(pd$stid))) {
@@ -501,8 +527,8 @@ aq_species_panel <- function(insts, var, legend_sites = c()) {
       p <- add_trace(p, x = site$Time_UTC, y = site[[var]],
                      name = s, legendgroup = s, showlegend = s %in% legend_sites,
                      type = 'scattergl', mode = 'lines+markers',
-                     line = list(color = aq_colors[[s]]),
-                     marker = list(color = aq_colors[[s]], size = 4))
+                     line = list(color = inst_colors[[s]]),
+                     marker = list(color = inst_colors[[s]], size = 4))
     }
   }
   if (!has_data) {
@@ -521,9 +547,9 @@ check_colorscale <- list(list(0, '#ED254E'), list(0.2499, '#ED254E'),
                          list(0.25, '#FFB20F'), list(0.35, '#E3F2E1'),
                          list(0.65, '#E3F2E1'), list(0.75, '#FFB20F'),
                          list(0.7501, '#ED254E'), list(1, '#ED254E'))
-aq_checks_rows <- function(inst) {
-  pd <- data$aq$obs[[inst]]
-  ck <- aq_checks %>%
+inst_checks_rows <- function(inst) {
+  pd <- data$instruments$obs[[inst]]
+  ck <- inst_checks %>%
     filter(instrument == inst, !is_species, variable %in% names(pd),
            !is.na(lo), !is.na(hi)) %>%
     distinct(variable, .keep_all = T)
@@ -531,20 +557,22 @@ aq_checks_rows <- function(inst) {
     sum(tapply(pd[[v]], pd$stid, function(x) any(!is.na(x))))
   }))
 }
-aq_checks_panel <- function(inst) {
-  pd <- data$aq$obs[[inst]]
-  short <- aq_short_name(inst)
-  ck <- aq_checks %>%
+inst_checks_panel <- function(inst) {
+  pd <- data$instruments$obs[[inst]]
+  short <- inst_short_name(inst)
+  ck <- inst_checks %>%
     filter(instrument == inst, !is_species, variable %in% names(pd),
            !is.na(lo), !is.na(hi)) %>%
     distinct(variable, .keep_all = T)
   sites <- sort(unique(pd$stid))
   hours <- seq(min(pd$Time_UTC), max(pd$Time_UTC), by = 3600)
   z <- list(); tips <- list(); labels <- c()
-  for (i in seq_len(nrow(ck))) {
-    v <- ck$variable[i]
-    for (s in sites) {
-      site <- pd[pd$stid == s, ]
+  # One row per checked variable; with several sites, a block of rows per
+  # site, labelled 'csp Cavity_P_torr'
+  for (s in sites) {
+    site <- pd[pd$stid == s, ]
+    for (i in seq_len(nrow(ck))) {
+      v <- ck$variable[i]
       x <- site[[v]][match(hours, site$Time_UTC)]
       if (all(is.na(x))) next
       pct <- 100 * (x - ck$lo[i]) / (ck$hi[i] - ck$lo[i])
@@ -560,27 +588,27 @@ aq_checks_panel <- function(inst) {
           type = 'heatmap', zmin = -50, zmax = 150,
           colorscale = check_colorscale, showscale = F, ygap = 1) %>%
     layout(xaxis = list(title = NA),
-           yaxis = list(title = paste(short, 'checks'), autorange = 'reversed',
-                        tickfont = list(size = 10)))
+           yaxis = list(title = list(text = inst, font = list(size = 12)),
+                        autorange = 'reversed', tickfont = list(size = 10)))
 }
 
-aq_tab_plot <- function(tab) {
+inst_tab_plot <- function(tab) {
   vars <- tab$variables[order(species_rank(species_of(tab$variables)))]
   # Name each site in the legend once, from the first panel it appears in
   shown <- c()
   species_panels <- lapply(vars, function(v) {
     sites <- unique(unlist(lapply(tab$instruments, function(i) {
-      pd <- data$aq$obs[[i]]
+      pd <- data$instruments$obs[[i]]
       if (v %in% names(pd)) unique(pd$stid[!is.na(pd[[v]])])
     })))
     new_sites <- setdiff(sites, shown)
     shown <<- c(shown, new_sites)
-    aq_species_panel(tab$instruments, v, legend_sites = new_sites)
+    inst_species_panel(tab$instruments, v, legend_sites = new_sites)
   })
   panels <- c(species_panels,
-              lapply(tab$instruments, aq_checks_panel))
+              lapply(tab$instruments, inst_checks_panel))
   heights <- c(rep(2, length(vars)),
-               sapply(tab$instruments, function(i) max(0.6, 0.3 * aq_checks_rows(i))))
+               sapply(tab$instruments, function(i) max(0.6, 0.3 * inst_checks_rows(i))))
   subplot(panels, nrows = length(panels), heights = heights / sum(heights),
           shareX = T, titleX = T, titleY = T) %>%
     layout(xaxis = list(title = 'Mountain Time'), showlegend = T,
@@ -588,16 +616,16 @@ aq_tab_plot <- function(tab) {
 }
 ```
 
-```{r Air Quality Tabs, results = 'asis'}
+```{r Species Tabs, results = 'asis'}
 # An error drops that tab and leaves the rest of the page alone
-for (i in seq_along(aq_tabs)) {
+for (i in seq_along(inst_tabs)) {
   tab <- tryCatch(
     knitr::knit_child(text = c(
-      paste('###', aq_tabs[[i]]$label), '',
-      '```{r}', sprintf('aq_tab_plot(aq_tabs[[%d]])', i), '```', ''
+      paste('###', inst_tabs[[i]]$label), '',
+      '```{r}', sprintf('inst_tab_plot(inst_tabs[[%d]])', i), '```', ''
     ), envir = environment(), quiet = TRUE),
     error = function(e) {
-      message('Air quality tab ', aq_tabs[[i]]$label, ' failed: ', conditionMessage(e))
+      message('Species tab ', inst_tabs[[i]]$label, ' failed: ', conditionMessage(e))
       ''
     })
   cat(tab)

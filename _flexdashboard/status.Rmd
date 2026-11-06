@@ -18,9 +18,11 @@ species_rank <- function(sp) {
   ifelse(sp %in% species_order, match(sp, species_order), length(species_order) + 1)
 }
 species_label <- function(sp) gsub('([A-Za-z])([0-9.]+)', '\\1<sub>\\2</sub>', sp)  # 'H2O' -> 'H<sub>2</sub>O'
+# An axis title such as 'CO<sub>2</sub> (ppm)' or 'PM<sub>2.5</sub> (µg/m<sup>3</sup>)'
+axis_title <- function(var) paste0(species_label(species_of(var)), ' (', units_of(var), ')')
 units_of <- function(var) {
   u <- sub('^[^_]+_', '', var)                              # 'PM2.5_ugm3' -> 'ugm3'
-  ifelse(u == 'ugm3', 'ug/m3', ifelse(u == 'ngm3', 'ng/m3', u))
+  ifelse(u == 'ugm3', 'µg/m<sup>3</sup>', ifelse(u == 'ngm3', 'ng/m<sup>3</sup>', u))
 }
 
 # One color per site for every plot on the page. plotly spreads `colors`
@@ -82,7 +84,7 @@ diel <- bind_rows(
 
 diel_vars <- unique(diel$variable)
 diel_vars <- diel_vars[order(species_rank(species_of(diel_vars)), diel_vars)]
-diel_title <- function(v) paste0(species_of(v), ' (', units_of(v), ')')
+diel_title <- axis_title
 
 # One trace per species and site; the buttons show one species' traces
 p <- plot_ly()
@@ -358,7 +360,7 @@ subplot(
   plot_ly(pd_h2o, x = ~Time_UTC, y = ~H2O_ppm_avg, color = ~stid,
           type = 'scattergl', mode = 'lines+markers', colors = site_colors) %>%
     layout(xaxis = list(title = NA),
-           yaxis = list(title = 'H2O (ppm)'),
+           yaxis = list(title = 'H<sub>2</sub>O (ppm)'),
            showlegend = F),
   plot_ly(filter(pd_flow, ID_CO2 == -10),
           x = ~Time_UTC, y = ~flow_error, color = ~stid,
@@ -415,7 +417,7 @@ subplot(
     plot_ly(pd, x = ~Time_UTC, y = ~CO2d_ppm_cal, color = ~stid,
             type = 'scattergl', mode = 'lines+markers', colors = site_colors) %>%
       layout(xaxis = list(title = NA),
-             yaxis = list(title = 'CO2 (ppm)'),
+             yaxis = list(title = 'CO<sub>2</sub> (ppm)'),
              showlegend = F),
     plot_ly(pd, x = ~Time_UTC, y = ~CO2d_rmse, color = ~stid,
             type = 'scattergl', mode = 'lines', colors = site_colors) %>%
@@ -494,7 +496,7 @@ subplot(
     plot_ly(pd, x = ~Time_UTC, y = ~CH4d_ppm_cal, color = ~stid,
             type = 'scattergl', mode = 'lines+markers', colors = site_colors) %>%
       layout(xaxis = list(title = NA),
-             yaxis = list(title = 'CH4 (ppm)'),
+             yaxis = list(title = 'CH<sub>4</sub> (ppm)'),
              showlegend = F),
     plot_ly(pd, x = ~Time_UTC, y = ~CH4d_rmse, color = ~stid,
             type = 'scattergl', mode = 'lines', colors = site_colors) %>%
@@ -651,7 +653,7 @@ inst_species_panel <- function(insts, var, key_sites = NULL) {
       key('Failing QAQC', '#777', dash = 'dot')
   }
   layout(p, xaxis = list(title = NA),
-         yaxis = list(title = paste0(species_of(var), ' (', units_of(var), ')'),
+         yaxis = list(title = axis_title(var),
                       range = yrange))
 }
 

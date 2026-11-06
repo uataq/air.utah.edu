@@ -40,6 +40,80 @@ site_colors <- local({
 Row {data-height=380}
 ------------------------------------------------------------------------------------------
 
+### Average Diel Cycle (10-day) <span style="float:right;"><a href="/s/diagnostics/"><i class="fa fa-bar-chart"></i> Timeseries Diagnostics</a></span> {data-width=900}
+```{r Diel Cycle}
+# One plot, one species at a time, picked with the buttons above it: CO2,
+# CH4, H2O, then every species the other instruments measure (O3, NO, NO2, CO,
+# PM2.5, ...). All from the qaqc data (only the Calibrations tabs use
+# calibrated data), atmosphere rows passing QAQC, as in the species tabs.
+hour_of <- function(t) as.integer(format(t, tz = 'America/Denver', format = '%H'))
+ghg_air <- function(id) {
+  data$qaqc %>% filter(.data[[id]] == -10, QAQC_Flag >= 0)
+}
+diel <- bind_rows(
+  ghg_air('ID_CO2') %>%
+    transmute(stid, variable = 'CO2d_ppm', hour = hour_of(Time_UTC), value = CO2d_ppm),
+  ghg_air('ID_CH4') %>%
+    transmute(stid, variable = 'CH4d_ppm', hour = hour_of(Time_UTC), value = CH4d_ppm),
+  ghg_air('ID_CO2') %>%
+    transmute(stid, variable = 'H2O_ppm', hour = hour_of(Time_UTC), value = H2O_ppm),
+  # Any failure here leaves the greenhouse gases alone
+  tryCatch({
+    inst <- data$instruments
+    aq <- unique(inst$last_seen$instrument[!inst$last_seen$is_ghg])
+    species <- inst$checks %>%
+      filter(is_species, instrument %in% aq) %>%
+      distinct(instrument, variable)
+    bind_rows(lapply(seq_len(nrow(species)), function(i) {
+      pd <- inst$obs[[species$instrument[i]]]
+      v <- species$variable[i]
+      if (is.null(pd) || !v %in% names(pd)) return(NULL)
+      data.frame(stid = pd$stid, variable = v, hour = hour_of(pd$Time_UTC),
+                 value = pd[[v]])
+    }))
+  }, error = function(e) NULL)
+) %>%
+  filter(!is.na(value)) %>%
+  group_by(variable, stid, hour) %>%
+  summarize(avg = mean(value), .groups = 'drop')
+
+diel_vars <- unique(diel$variable)
+diel_vars <- diel_vars[order(species_rank(species_of(diel_vars)), diel_vars)]
+diel_title <- function(v) paste0(species_of(v), ' (', units_of(v), ')')
+
+# One trace per species and site; the buttons show one species' traces
+p <- plot_ly()
+trace_var <- c()
+for (v in diel_vars) {
+  for (st in sort(unique(diel$stid[diel$variable == v]))) {
+    d <- diel[diel$variable == v & diel$stid == st, ]
+    p <- add_trace(p, x = d$hour, y = d$avg, name = st,
+                   type = 'scatter', mode = 'lines+markers',
+                   visible = v == diel_vars[1],
+                   line = list(color = site_colors[[st]]),
+                   marker = list(color = site_colors[[st]], size = 5))
+    trace_var <- c(trace_var, v)
+  }
+}
+buttons <- lapply(diel_vars, function(v) {
+  list(label = species_label(species_of(v)), method = 'update',
+       args = list(list(visible = as.list(trace_var == v)),
+                   list(yaxis = list(title = diel_title(v), autorange = TRUE))))
+})
+p %>%
+  layout(xaxis = list(title = 'Hour (Mountain)', tickvals = seq(0, 21, 3)),
+         yaxis = list(title = diel_title(diel_vars[1])),
+         # sites of the species shown, to the right of the buttons
+         showlegend = T, margin = list(t = 50),
+         legend = list(orientation = 'h', x = 1, xanchor = 'right',
+                       y = 1.02, yanchor = 'bottom'),
+         updatemenus = list(list(type = 'buttons', direction = 'right',
+                                 buttons = buttons, showactive = TRUE,
+                                 x = 0, xanchor = 'left', y = 1.02, yanchor = 'bottom',
+                                 pad = list(r = 4, t = 0), bgcolor = '#f5f5f5',
+                                 bordercolor = '#ddd', font = list(size = 12))))
+```
+
 ### Network Diagnostics (1-day) <span style="float:right;"><a href="https://github.com/uataq/data-pipeline/blob/main/QAQC_Flags.md#qaqc-flags"><i class="fa fa-bars"></i> QAQC Definitions</a></span> {data-width=700}
 ```{r Network Diagnostics}
 # A grid of every site (rows) and every species it measures (columns), for the
@@ -228,86 +302,11 @@ htmltools::HTML(paste0(
   tip_css,
   '<table class="table table-condensed"><thead><tr>', header, '</tr></thead><tbody>',
   paste(rows, collapse = ''), '</tbody></table>',
-  '<p style="color: #999; font-size: 85%;">Latest hourly value of each species. ',
+  '<p style="color: #999; font-size: 85%;">Latest hourly value of each species, passing QAQC or not. ',
   badge('orange', 2), ' under 90% of the past day passing QAQC, or noisy. ',
   badge('red', 3), ' silent over 2 hours, under 50% passing, or reference error ',
   'over its limit. Hover a cell for last seen, flags, ptp and err.</p>'
 ))
-```
-
-
-### Average Diel Cycle (10-day) <span style="float:right;"><a href="/s/diagnostics/"><i class="fa fa-bar-chart"></i> Timeseries Diagnostics</a></span> {data-width=900}
-```{r Diel Cycle}
-# One plot, one species at a time, picked with the buttons above it: CO2,
-# CH4, H2O, then every species the other instruments measure (O3, NO, NO2, CO,
-# PM2.5, ...). All from the qaqc data (only the Calibrations tabs use
-# calibrated data), atmosphere rows passing QAQC, as in the species tabs.
-hour_of <- function(t) as.integer(format(t, tz = 'America/Denver', format = '%H'))
-ghg_air <- function(id) {
-  data$qaqc %>% filter(.data[[id]] == -10, QAQC_Flag >= 0)
-}
-diel <- bind_rows(
-  ghg_air('ID_CO2') %>%
-    transmute(stid, variable = 'CO2d_ppm', hour = hour_of(Time_UTC), value = CO2d_ppm),
-  ghg_air('ID_CH4') %>%
-    transmute(stid, variable = 'CH4d_ppm', hour = hour_of(Time_UTC), value = CH4d_ppm),
-  ghg_air('ID_CO2') %>%
-    transmute(stid, variable = 'H2O_ppm', hour = hour_of(Time_UTC), value = H2O_ppm),
-  # Any failure here leaves the greenhouse gases alone
-  tryCatch({
-    inst <- data$instruments
-    aq <- unique(inst$last_seen$instrument[!inst$last_seen$is_ghg])
-    species <- inst$checks %>%
-      filter(is_species, instrument %in% aq) %>%
-      distinct(instrument, variable)
-    bind_rows(lapply(seq_len(nrow(species)), function(i) {
-      pd <- inst$obs[[species$instrument[i]]]
-      v <- species$variable[i]
-      if (is.null(pd) || !v %in% names(pd)) return(NULL)
-      data.frame(stid = pd$stid, variable = v, hour = hour_of(pd$Time_UTC),
-                 value = pd[[v]])
-    }))
-  }, error = function(e) NULL)
-) %>%
-  filter(!is.na(value)) %>%
-  group_by(variable, stid, hour) %>%
-  summarize(avg = mean(value), .groups = 'drop')
-
-diel_vars <- unique(diel$variable)
-diel_vars <- diel_vars[order(species_rank(species_of(diel_vars)), diel_vars)]
-diel_title <- function(v) paste0(species_of(v), ' (', units_of(v), ')')
-
-# One trace per species and site; the buttons show one species' traces
-p <- plot_ly()
-trace_var <- c()
-for (v in diel_vars) {
-  for (st in sort(unique(diel$stid[diel$variable == v]))) {
-    d <- diel[diel$variable == v & diel$stid == st, ]
-    p <- add_trace(p, x = d$hour, y = d$avg, name = st,
-                   type = 'scatter', mode = 'lines+markers',
-                   visible = v == diel_vars[1],
-                   line = list(color = site_colors[[st]]),
-                   marker = list(color = site_colors[[st]], size = 5))
-    trace_var <- c(trace_var, v)
-  }
-}
-buttons <- lapply(diel_vars, function(v) {
-  list(label = species_label(species_of(v)), method = 'update',
-       args = list(list(visible = as.list(trace_var == v)),
-                   list(yaxis = list(title = diel_title(v), autorange = TRUE))))
-})
-p %>%
-  layout(xaxis = list(title = 'Hour (Mountain)', tickvals = seq(0, 21, 3)),
-         yaxis = list(title = diel_title(diel_vars[1])),
-         # sites of the species shown, to the right of the buttons
-         showlegend = T, margin = list(t = 50),
-         legend = list(orientation = 'h', x = 1, xanchor = 'right',
-                       y = 1.02, yanchor = 'bottom'),
-         updatemenus = list(list(type = 'buttons', direction = 'right',
-                                 buttons = buttons, showactive = TRUE,
-                                 x = 0, xanchor = 'left', y = 1.02, yanchor = 'bottom',
-                                 pad = list(r = 4, t = 0), bgcolor = '#f5f5f5',
-                                 bordercolor = '#ddd', font = list(size = 12))))
 ```
 
 
@@ -565,30 +564,59 @@ inst_tabs <- tryCatch({
   list()
 })
 
+# A species by site: solid where most of the hour's atmosphere rows passed
+# QAQC (their mean), dotted and faint where most failed (the mean of all
+# rows, i.e. what the instrument read), so failing data stays visible. The
+# y-axis is scaled to the passing data, so a flagged spike does not flatten it.
 inst_species_panel <- function(insts, var, legend_sites = c()) {
   p <- plot_ly()
-  has_data <- FALSE
+  good_y <- c(); bad_y <- c()
   for (inst in insts) {
     pd <- data$instruments$obs[[inst]]
     if (!var %in% names(pd)) next
     attributes(pd$Time_UTC)$tzone <- 'America/Denver'
     for (s in sort(unique(pd$stid))) {
       site <- pd[pd$stid == s, ]
-      has_data <- has_data || any(!is.na(site[[var]]))
-      p <- add_trace(p, x = site$Time_UTC, y = site[[var]],
-                     name = s, legendgroup = s, showlegend = s %in% legend_sites,
+      site <- site[order(site$Time_UTC), ]
+      ok <- site[[paste0(var, '_ok')]]
+      mostly_bad <- !is.na(ok) & ok < 0.5
+      y_good <- ifelse(mostly_bad, NA, site[[var]])
+      # the hour either side of a failing stretch joins the dots to the line
+      near_bad <- mostly_bad | c(mostly_bad[-1], FALSE) | c(FALSE, head(mostly_bad, -1))
+      y_bad <- ifelse(mostly_bad, site[[paste0(var, '_all')]],
+                      ifelse(near_bad, site[[var]], NA))
+      good_y <- c(good_y, y_good)
+      bad_y <- c(bad_y, site[[paste0(var, '_all')]][mostly_bad])
+      p <- add_trace(p, x = site$Time_UTC, y = y_good,
+                     name = s, legendgroup = s,
+                     showlegend = s %in% legend_sites && any(!is.na(y_good)),
                      type = 'scattergl', mode = 'lines+markers',
                      line = list(color = site_colors[[s]]),
                      marker = list(color = site_colors[[s]], size = 4))
+      if (any(mostly_bad)) {
+        p <- add_trace(p, x = site$Time_UTC, y = y_bad,
+                       name = paste(s, 'failing QAQC'), legendgroup = s,
+                       showlegend = s %in% legend_sites, type = 'scatter', mode = 'lines',
+                       opacity = 0.6, connectgaps = F,
+                       line = list(color = site_colors[[s]], dash = 'dot', width = 2))
+      }
     }
   }
-  if (!has_data) {
-    p <- add_annotations(p, text = 'no data passing QAQC', showarrow = F,
+  good_y <- good_y[!is.na(good_y)]; bad_y <- bad_y[!is.na(bad_y)]
+  yrange <- NULL
+  if (length(good_y) + length(bad_y) == 0) {
+    p <- add_annotations(p, text = 'no data', showarrow = F,
                          x = 0.5, y = 0.5, xref = 'paper', yref = 'paper',
                          font = list(color = '#999'))
+  } else {
+    # the passing data; the failing data's bulk (2nd to 98th percentile) only
+    # when nothing passed
+    r <- if (length(good_y) > 0) range(good_y) else quantile(bad_y, c(0.02, 0.98))
+    yrange <- r + c(-0.05, 0.1) * max(diff(r), abs(r[2]) * 0.01, 1e-6)
   }
   layout(p, xaxis = list(title = NA),
-         yaxis = list(title = paste0(species_of(var), ' (', units_of(var), ')')))
+         yaxis = list(title = paste0(species_of(var), ' (', units_of(var), ')'),
+                      range = yrange))
 }
 
 # Checks as one heatmap: one row per site and instrument, one column per
@@ -597,9 +625,12 @@ inst_species_panel <- function(insts, var, legend_sites = c()) {
 # mid-range, orange near a limit, red outside one. Hovering lists every check
 # with its value and limits, the value red outside a limit and orange near one
 # (outer 10% of the range).
-check_colorscale <- list(list(0, '#E3F2E1'), list(0.3, '#E3F2E1'),
-                         list(0.4999, '#FFB20F'), list(0.5, '#ED254E'),
-                         list(1, '#ED254E'))
+# z is the distance from the middle of the range in % of the half-range, / 2:
+# under 40 (well inside) pale green, 40-50 (outer 10% of the range, the same
+# 'near a limit' as the hover) fading to orange, over 50 (outside) red
+check_colorscale <- list(list(0, '#E3F2E1'), list(0.4, '#E3F2E1'),
+                         list(0.4001, '#FCE3A6'), list(0.4999, '#FFB20F'),
+                         list(0.5, '#ED254E'), list(1, '#ED254E'))
 # The shortest folder under the same QAQC_Flags.md section, so lgr_ugga and
 # lgr_ugga_manual_cal both read lgr_ugga
 model_folder <- function(inst) {
@@ -678,7 +709,7 @@ inst_tab_plot <- function(tab) {
   species_panels <- lapply(vars, function(v) {
     sites <- unique(unlist(lapply(tab$instruments, function(i) {
       pd <- data$instruments$obs[[i]]
-      if (v %in% names(pd)) unique(pd$stid[!is.na(pd[[v]])])
+      if (v %in% names(pd)) unique(pd$stid[!is.na(pd[[v]]) | !is.na(pd[[paste0(v, '_all')]])])
     })))
     new_sites <- setdiff(sites, shown)
     shown <<- c(shown, new_sites)

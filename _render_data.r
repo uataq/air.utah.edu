@@ -279,12 +279,13 @@ build_instrument_data <- function() {
   }
   if (length(raw) == 0) return(NULL)
 
-  # Keep a species value only where it passed QAQC and, for analyzers that
-  # also measure reference tanks (an ID_<species> column), where it is the
-  # atmosphere (ID -10)
-  species_only_good <- function(df, species) {
+  # For analyzers that also measure reference tanks (an ID_<species>
+  # column), keep a species value only where it is the atmosphere (ID -10);
+  # with passing = TRUE, also only where it passed QAQC
+  species_air <- function(df, species, passing = FALSE) {
     for (v in species) {
-      bad <- df$QAQC_Flag < 0
+      bad <- rep(FALSE, nrow(df))
+      if (passing) bad <- df$QAQC_Flag < 0
       id <- paste0('ID_', species_name(v))
       if (id %in% names(df)) bad <- bad | is.na(df[[id]]) | df[[id]] != -10
       set(df, which(bad), v, NA_real_)
@@ -292,8 +293,10 @@ build_instrument_data <- function() {
     df
   }
 
-  # Hourly means: the species from good rows only, the variables the
-  # pipeline checks from all rows (to see why rows fail)
+  # Hourly means. The variables the pipeline checks: all rows (to see why rows
+  # fail). Each species: `<var>` over rows passing QAQC, `<var>_all` over all
+  # atmosphere rows (what the instrument read), `<var>_ok` the share of those
+  # rows that passed
   obs <- lapply(names(raw), function(inst) {
     df <- copy(raw[[inst]])  # copy: changes below would change raw too
     inst_checks <- checks[instrument == inst]
@@ -302,9 +305,17 @@ build_instrument_data <- function() {
     species <- intersect(inst_checks$variable[inst_checks$is_species], vars)
 
     df[, (vars) := lapply(.SD, as.numeric), .SDcols = vars]
-    df <- species_only_good(df, species)
+    air <- species_air(copy(df), species)
+    good <- species_air(copy(df), species, passing = TRUE)
+    for (v in species) {
+      set(df, j = paste0(v, '_all'), value = air[[v]])
+      set(df, j = paste0(v, '_ok'),
+          value = ifelse(is.na(air[[v]]), NA_real_, as.numeric(!is.na(good[[v]]))))
+      set(df, j = v, value = good[[v]])
+    }
+    cols <- c(vars, paste0(species, '_all'), paste0(species, '_ok'))
     df[, Time_UTC := as.POSIXct(trunc(Time_UTC, 'hours'))]
-    df[, lapply(.SD, mean, na.rm = T), by = .(stid, Time_UTC), .SDcols = vars]
+    df[, lapply(.SD, mean, na.rm = T), by = .(stid, Time_UTC), .SDcols = cols]
   })
   names(obs) <- names(raw)
 
@@ -317,19 +328,22 @@ build_instrument_data <- function() {
   flags <- everything[Time_UTC > today - 86400, .N,
                       by = .(stid, instrument, QAQC_Flag)]
 
-  # Each species over the past day, good rows only: its point-to-point noise
-  # (as `co2 ptp` for the greenhouse gases) and its mean over the latest hour
+  # Each species over the past day: its point-to-point noise over rows passing
+  # QAQC (as `co2 ptp` for the greenhouse gases), and its mean over the latest
+  # hour of atmosphere rows, passing or not (what the instrument reads now)
   species_day <- rbindlist(lapply(names(raw), function(inst) {
     species <- checks[instrument == inst & is_species, unique(variable)]
     species <- intersect(species, names(raw[[inst]]))
     df <- copy(raw[[inst]][Time_UTC > today - 86400])
     df[, (species) := lapply(.SD, as.numeric), .SDcols = species]
-    df <- species_only_good(df, species)
+    air <- species_air(copy(df), species)
+    good <- species_air(copy(df), species, passing = TRUE)
     rbindlist(lapply(species, function(v) {
-      df[!is.na(get(v)), .(instrument = inst, variable = v,
-                           ptp = mean(abs(diff(get(v)))),
-                           latest = mean(get(v)[Time_UTC > max(Time_UTC) - 3600])),
-         by = stid]
+      latest <- air[!is.na(get(v)), .(latest = mean(get(v)[Time_UTC > max(Time_UTC) - 3600])),
+                    by = stid]
+      ptp <- good[!is.na(get(v)), .(ptp = mean(abs(diff(get(v))))), by = stid]
+      out <- merge(latest, ptp, by = 'stid', all = T)
+      out[, `:=`(instrument = inst, variable = v)]
     }))
   }))
 

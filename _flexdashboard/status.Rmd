@@ -343,7 +343,7 @@ htmltools::HTML(paste0(
 ```
 
 
-Row {.tabset data-height=800}
+Row {.tabset data-height=600}
 ------------------------------------------------------------------------------------------
 
 ### GHG Diagnostics (10-day)

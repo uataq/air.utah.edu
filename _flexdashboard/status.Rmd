@@ -285,14 +285,17 @@ header <- paste0('<th style="text-align: left;">stid</th>',
                  '<th style="text-align: right;">last seen', unit_line('MT'), '</th>',
                  paste0('<th style="text-align: center;">', species_label(grid_species),
                         unit_line(grid_units), '</th>', collapse = ''))
-rows <- sapply(sites, function(s) {
+# Pop-ups open downward in the top half of the grid, upward in the bottom half
+rows <- sapply(seq_along(sites), function(r) {
+  s <- sites[r]
+  pop_class <- if (r > length(sites) / 2) 'grid-pop up' else 'grid-pop'
   seen <- site_seen$last_seen[site_seen$stid == s]
   tds <- sapply(grid_species, function(sp) {
     cell <- cells[cells$stid == s & cells$species == sp, ]
     if (nrow(cell) == 0) return('<td style="text-align: center; color: #ccc;">&middot;</td>')
     paste0('<td style="text-align: center;"><span class="grid-tip">',
            badge(cell$value, cell$status),
-           '<span class="grid-pop">', cell$tip, '</span></span></td>')
+           '<span class="', pop_class, '">', cell$tip, '</span></span></td>')
   })
   paste0('<tr><td>', s, '</td>',
          '<td style="text-align: right;">',
@@ -308,7 +311,10 @@ tip_css <- '<style>
   background: white; color: #333; border: 1px solid #ddd; border-radius: 5px;
   padding: 6px 10px; box-shadow: 0 2px 8px rgba(0,0,0,.2);
 }
+.grid-pop.up { top: auto; bottom: 130%; }
 .grid-tip:hover .grid-pop { display: block; }
+/* let the pop-ups spill past the box of the grid instead of being cut off */
+.chart-wrapper:has(.grid-table), .chart-stage:has(.grid-table) { overflow: visible !important; }
 .grid-table th, .grid-table td { white-space: nowrap; }
 .grid-table th { vertical-align: bottom !important; line-height: 1.2; }
 .grid-unit { font-weight: normal; color: #999; font-size: 80%; }

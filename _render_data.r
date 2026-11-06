@@ -192,4 +192,135 @@ data$map <- rbindlist(lapply(stids, function(stid) {
 }), fill = T)
 
 
+# Air quality instruments ------------------------------------------------------
+# Diagnostics for the non-GHG instruments, shown on status.html. Which
+# variables each instrument is checked on, and their limits, are read from the
+# pipeline's QAQC_Flags.md, so the page shows the same checks the pipeline makes.
+
+match_section <- function(section, instruments) {
+  # The instrument folder a QAQC_Flags.md section belongs to, by name:
+  # "Teledyne T200" -> teledyne_t200, "MetOne ES642" -> metone_es642, or by
+  # initials for the last word, "Los Gatos Research NO2" -> lgr_no2.
+  # A new instrument needs no change here if its section is named like this.
+  squash <- function(x) gsub('[^a-z0-9]', '', tolower(x))
+  words <- strsplit(section, ' ')[[1]]
+  initials <- paste0(paste(substr(words[-length(words)], 1, 1), collapse = ''),
+                     words[length(words)])
+  hit <- instruments[squash(instruments) %in% squash(c(section, initials))]
+  if (length(hit) == 1) hit else NA_character_
+}
+
+
+read_qaqc_checks <- function(instruments, file = 'pipeline/QAQC_Flags.md') {
+  # One row per flag of the given instruments, e.g. for
+  #   | -81 | `Flow_Lmin` flow rate out of range (1.9, 2.1) |
+  # flag = -81, variable = 'Flow_Lmin', lo = 1.9, hi = 2.1
+  rows <- grep('^\\|', readLines(file, warn = F), value = T)
+  cells <- str_split_fixed(rows, '\\|', 4)
+  flag <- str_trim(cells[, 2])
+  description <- str_trim(cells[, 3])
+
+  # Section rows look like "| ↓ | **Teledyne T200** |"
+  is_section <- str_detect(description, '^\\*\\*')
+  sections <- str_remove_all(description[is_section], '\\*')
+  section <- c(NA, sections)[cumsum(is_section) + 1]
+  section_instrument <- sapply(sections, match_section, instruments = instruments)
+  instrument <- c(NA, section_instrument)[cumsum(is_section) + 1]
+
+  is_flag <- str_detect(flag, '^-?[0-9]+$')
+  range <- str_match(description, '\\((-?[0-9.]+),\\s*(-?[0-9.]+)\\)')
+  checks <- data.table(
+    name = section,
+    instrument = unname(instrument),
+    flag = suppressWarnings(as.integer(flag)),
+    variable = str_match(description, '^`([^`]+)`')[, 2],
+    lo = as.numeric(range[, 2]),
+    hi = as.numeric(range[, 3]),
+    # The measured species are the "measurement out of range" checks
+    is_species = str_detect(description, 'measurement out of range'),
+    description = description
+  )
+  checks[is_flag & !is.na(instrument)]
+}
+
+
+build_aq_data <- function() {
+  # Air quality instruments: every non-GHG instrument folder at an active site
+  # whose QAQC_Flags.md section checks a measured species (not gps or met)
+  folders <- unique(unlist(lapply(stids, function(stid) {
+    names(get_instrument_files(stid, 'qaqc', subset = 'non-ghg'))
+  })))
+  checks <- read_qaqc_checks(folders)
+  aq_instruments <- unique(checks$instrument[checks$is_species])
+  checks <- checks[instrument %in% aq_instruments]
+
+  # Read each air quality instrument's qaqc data from the past 10 days
+  raw <- list()
+  for (stid in stids) {
+    files <- get_instrument_files(stid, 'qaqc', subset = 'non-ghg')
+    files <- files[names(files) %in% aq_instruments]
+    for (instrument in names(files)) {
+      df <- rbindlist(lapply(files[[instrument]], fread, showProgress = F),
+                      fill = T)
+      df$Time_UTC <- fastPOSIXct(df$Time_UTC, tz = 'UTC')
+      df <- df[Time_UTC > ten_days_ago]
+      if (nrow(df) == 0) next
+      df$stid <- stid
+      raw[[instrument]] <- rbind(raw[[instrument]], df, fill = T)
+    }
+  }
+  if (length(raw) == 0) return(NULL)
+
+  # Hourly means: the species over passing rows only, the variables the
+  # pipeline checks over all rows (to see why rows fail)
+  obs <- lapply(names(raw), function(inst) {
+    df <- copy(raw[[inst]])  # copy: := below would change raw too
+    inst_checks <- checks[instrument == inst]
+    vars <- intersect(inst_checks$variable, names(df))
+    vars <- setdiff(vars, 'Time_UTC')
+    species <- intersect(inst_checks$variable[inst_checks$is_species], vars)
+
+    df[, (vars) := lapply(.SD, as.numeric), .SDcols = vars]
+    df[, Time_UTC := as.POSIXct(trunc(Time_UTC, 'hours'))]
+    df[QAQC_Flag < 0, (species) := NA]
+
+    df[, lapply(.SD, mean, na.rm = T), by = .(stid, Time_UTC), .SDcols = vars]
+  })
+  names(obs) <- names(raw)
+
+  # Last time each instrument reported, and its flags over the past day
+  everything <- rbindlist(lapply(names(raw), function(instrument) {
+    raw[[instrument]][, .(stid, instrument = instrument, Time_UTC, QAQC_Flag)]
+  }))
+  last_seen <- everything[, .(last_seen = max(Time_UTC)), by = .(stid, instrument)]
+  flags <- everything[Time_UTC > today - 86400, .N,
+                      by = .(stid, instrument, QAQC_Flag)]
+
+  # Each species over the past day, passing rows only: its point-to-point
+  # noise (as `co2 ptp` for the greenhouse gases) and its mean over the
+  # latest hour of data
+  species_day <- rbindlist(lapply(names(raw), function(inst) {
+    species <- checks[instrument == inst & is_species, unique(variable)]
+    species <- intersect(species, names(raw[[inst]]))
+    df <- raw[[inst]][Time_UTC > today - 86400 & QAQC_Flag >= 0]
+    rbindlist(lapply(species, function(v) {
+      df[, .(instrument = inst, variable = v,
+             ptp = mean(abs(diff(as.numeric(get(v)))), na.rm = T),
+             latest = mean(as.numeric(get(v))[Time_UTC > max(Time_UTC) - 3600],
+                           na.rm = T)),
+         by = stid]
+    }))
+  }))
+
+  list(checks = checks, obs = obs, last_seen = last_seen, flags = flags,
+       species_day = species_day)
+}
+
+# A failure here must not stop the rest of the site from updating
+data$aq <- tryCatch(build_aq_data(), error = function(e) {
+  message('Air quality data failed: ', conditionMessage(e))
+  NULL
+})
+
+
 saveRDS(data, 'air.utah.edu/_data.rds')

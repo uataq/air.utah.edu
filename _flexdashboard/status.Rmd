@@ -238,19 +238,20 @@ htmltools::HTML(paste0(
 
 ### Average Diel Cycle (10-day) <span style="float:right;"><a href="/s/diagnostics/"><i class="fa fa-bar-chart"></i> Timeseries Diagnostics</a></span> {data-width=900}
 ```{r Diel Cycle}
-# One plot, one species at a time, picked with the buttons above it. The
-# species are CO2 and CH4 (calibrated), H2O, then every species the other
-# instruments measure (O3, NO, NO2, CO, PM2.5, ...), from rows passing QAQC.
+# One plot, one species at a time, picked with the buttons above it: CO2,
+# CH4, H2O, then every species the other instruments measure (O3, NO, NO2, CO,
+# PM2.5, ...). All from the qaqc data (only the Calibrations tabs use
+# calibrated data), atmosphere rows passing QAQC, as in the species tabs.
 hour_of <- function(t) as.integer(format(t, tz = 'America/Denver', format = '%H'))
+ghg_air <- function(id) {
+  data$qaqc %>% filter(.data[[id]] == -10, QAQC_Flag >= 0)
+}
 diel <- bind_rows(
-  data$calibrated %>%
-    filter(ID_CO2 == -10) %>%
-    transmute(stid, variable = 'CO2d_ppm', hour = hour_of(Time_UTC), value = CO2d_ppm_cal),
-  data$calibrated %>%
-    filter(ID_CH4 == -10) %>%
-    transmute(stid, variable = 'CH4d_ppm', hour = hour_of(Time_UTC), value = CH4d_ppm_cal),
-  data$qaqc %>%
-    filter(ID_CO2 == -10) %>%
+  ghg_air('ID_CO2') %>%
+    transmute(stid, variable = 'CO2d_ppm', hour = hour_of(Time_UTC), value = CO2d_ppm),
+  ghg_air('ID_CH4') %>%
+    transmute(stid, variable = 'CH4d_ppm', hour = hour_of(Time_UTC), value = CH4d_ppm),
+  ghg_air('ID_CO2') %>%
     transmute(stid, variable = 'H2O_ppm', hour = hour_of(Time_UTC), value = H2O_ppm),
   # Any failure here leaves the greenhouse gases alone
   tryCatch({

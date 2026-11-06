@@ -568,7 +568,11 @@ inst_tabs <- tryCatch({
 # QAQC (their mean), dotted and faint where most failed (the mean of all
 # rows, i.e. what the instrument read), so failing data stays visible. The
 # y-axis is scaled to the passing data, so a flagged spike does not flatten it.
-inst_species_panel <- function(insts, var, legend_sites = c()) {
+# key_sites: draw the tab's legend in this panel: each site in its color
+# (clicking it hides that site's lines), then the line styles, solid for
+# passing QAQC and dotted for failing. The keys are single points below the
+# panel's y-axis range, there only for the legend.
+inst_species_panel <- function(insts, var, key_sites = NULL) {
   p <- plot_ly()
   good_y <- c(); bad_y <- c()
   for (inst in insts) {
@@ -588,15 +592,14 @@ inst_species_panel <- function(insts, var, legend_sites = c()) {
       good_y <- c(good_y, y_good)
       bad_y <- c(bad_y, site[[paste0(var, '_all')]][mostly_bad])
       p <- add_trace(p, x = site$Time_UTC, y = y_good,
-                     name = s, legendgroup = s,
-                     showlegend = s %in% legend_sites && any(!is.na(y_good)),
+                     name = s, legendgroup = s, showlegend = F,
                      type = 'scattergl', mode = 'lines+markers',
                      line = list(color = site_colors[[s]]),
                      marker = list(color = site_colors[[s]], size = 4))
       if (any(mostly_bad)) {
         p <- add_trace(p, x = site$Time_UTC, y = y_bad,
                        name = paste(s, 'failing QAQC'), legendgroup = s,
-                       showlegend = s %in% legend_sites, type = 'scatter', mode = 'lines',
+                       showlegend = F, type = 'scatter', mode = 'lines',
                        opacity = 0.6, connectgaps = F,
                        line = list(color = site_colors[[s]], dash = 'dot', width = 2))
       }
@@ -613,6 +616,20 @@ inst_species_panel <- function(insts, var, legend_sites = c()) {
     # when nothing passed
     r <- if (length(good_y) > 0) range(good_y) else quantile(bad_y, c(0.02, 0.98))
     yrange <- r + c(-0.05, 0.1) * max(diff(r), abs(r[2]) * 0.01, 1e-6)
+  }
+  if (!is.null(key_sites) && !is.null(yrange)) {
+    t0 <- min(do.call(c, lapply(data$instruments$obs[insts], function(o) min(o$Time_UTC))))
+    attributes(t0)$tzone <- 'America/Denver'
+    y_out <- yrange[1] - 10 * diff(yrange)
+    key <- function(p, name, color, dash = 'solid', group = name) {
+      add_trace(p, x = t0, y = y_out, name = name, legendgroup = group,
+                type = 'scatter', mode = 'lines', showlegend = T, hoverinfo = 'skip',
+                line = list(color = color, dash = dash, width = 2))
+    }
+    for (s in key_sites) p <- key(p, s, site_colors[[s]], group = s)
+    p <- p %>%
+      key('Passing QAQC', '#777') %>%
+      key('Failing QAQC', '#777', dash = 'dot')
   }
   layout(p, xaxis = list(title = NA),
          yaxis = list(title = paste0(species_of(var), ' (', units_of(var), ')'),
@@ -704,17 +721,11 @@ inst_checks_panel <- function(insts) {
 
 inst_tab_plot <- function(tab) {
   vars <- tab$variables[order(species_rank(species_of(tab$variables)))]
-  # Name each site in the legend once, from the first panel it appears in
-  shown <- c()
-  species_panels <- lapply(vars, function(v) {
-    sites <- unique(unlist(lapply(tab$instruments, function(i) {
-      pd <- data$instruments$obs[[i]]
-      if (v %in% names(pd)) unique(pd$stid[!is.na(pd[[v]]) | !is.na(pd[[paste0(v, '_all')]])])
-    })))
-    new_sites <- setdiff(sites, shown)
-    shown <<- c(shown, new_sites)
-    inst_species_panel(tab$instruments, v, legend_sites = new_sites)
+  sites <- sort(unique(unlist(lapply(tab$instruments, function(i) data$instruments$obs[[i]]$stid))))
+  species_panels <- lapply(seq_along(vars), function(i) {
+    inst_species_panel(tab$instruments, vars[i], key_sites = if (i == 1) sites)
   })
+
   panels <- c(species_panels, list(inst_checks_panel(tab$instruments)))
   heights <- c(rep(2, length(vars)),
                max(0.5, 0.25 * inst_checks_rows(tab$instruments)))

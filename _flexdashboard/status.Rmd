@@ -788,8 +788,12 @@ for (i in seq_along(inst_tabs)) {
 ### Log
 
 ```{r Log}
-log_files <- dir('../../pipeline/log', full.names = T)
-log_content <- sapply(log_files, function(file) {
+# The latest run of each site, from the tail of its log. Each site gets a
+# heading, and each instrument ('Process: ...') starts with a blank line and
+# a bold line, so it is clear where one instrument ends and the next begins.
+# (print() of the lines packed short ones side by side on one line.)
+log_files <- dir('../../pipeline/log', pattern = '\\.log$', full.names = T)
+log_html <- sapply(log_files, function(file) {
   con <- pipe(paste('tail -n 1000', file), 'rb')
   content <- read_file(con)
   close(con)
@@ -803,8 +807,14 @@ log_content <- sapply(log_files, function(file) {
     mutate(content = str_trim(content)) %>%
     pull(content)
 
-  str_split(paste(run_content, collapse='\n\n'), '\n')[[1]]
+  lines <- str_split(paste(run_content, collapse = '\n\n'), '\n')[[1]]
+  lines <- htmltools::htmlEscape(lines)
+  is_process <- str_detect(lines, '^Process: ')
+  lines[is_process] <- paste0('\n<b>', lines[is_process], '</b>')
+
+  stid <- tools::file_path_sans_ext(basename(file))
+  paste0('<h4>', stid, '</h4><pre>', paste(lines, collapse = '\n'), '</pre>')
 })
-names(log_content) <- tools::file_path_sans_ext(basename(names(log_content)))
-print(log_content, quote = F)
+htmltools::HTML(paste0('<div class="pipeline-log">',
+                       paste(log_html, collapse = ''), '</div>'))
 ```

@@ -196,3 +196,124 @@ a:active {
     margin: 40px auto;
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * Dark theme: on when <html data-theme="dark">, set by theme.js from the
+ * moon/sun button in the navbar. Light (everything above) is the default.
+ * Plotly plots and the map tiles are recolored in theme.js.
+ * ------------------------------------------------------------------------- */
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --dark-bg: #181a1b;
+  --dark-card: #222527;
+  --dark-raised: #2b2e30;
+  --dark-border: #3a3d40;
+  --dark-text: #d6d6d6;
+  --dark-muted: #9a9a9a;
+  --dark-link: #ef6a70;
+}
+html[data-theme="dark"] body {
+  background-color: var(--dark-bg);
+  color: var(--dark-text);
+}
+html[data-theme="dark"] a:link,
+html[data-theme="dark"] a:visited,
+html[data-theme="dark"] a:hover,
+html[data-theme="dark"] a:active {
+  color: var(--dark-link);
+}
+html[data-theme="dark"] h1, html[data-theme="dark"] h2, html[data-theme="dark"] h3,
+html[data-theme="dark"] h4, html[data-theme="dark"] h5, html[data-theme="dark"] h6 {
+  color: var(--dark-text);
+}
+html[data-theme="dark"] hr { border-top-color: var(--dark-border); }
+
+/* navbar: already dark; the dropdown menu */
+html[data-theme="dark"] .navbar-inverse { background-color: #111213; border-color: #111213; }
+html[data-theme="dark"] .dropdown-menu { background-color: var(--dark-raised); border-color: var(--dark-border); }
+html[data-theme="dark"] .dropdown-menu > li > a { color: var(--dark-text) !important; }
+html[data-theme="dark"] .dropdown-menu > li > a:hover,
+html[data-theme="dark"] .dropdown-menu > li > a:focus { background-color: #3a3d40; color: #fff !important; }
+html[data-theme="dark"] .dropdown-menu .divider { background-color: var(--dark-border); }
+
+/* the theme button */
+.theme-toggle { cursor: pointer; }
+#airnav > ul > li > a.theme-toggle { color: #ccc; }
+#airnav > ul > li > a.theme-toggle:hover { color: #fff; }
+
+/* flexdashboard (status page) */
+html[data-theme="dark"] .chart-wrapper,
+html[data-theme="dark"] .nav-tabs-custom,
+html[data-theme="dark"] .nav-tabs-custom > .tab-content {
+  background: var(--dark-card);
+  border-color: var(--dark-border);
+}
+html[data-theme="dark"] .chart-title,
+html[data-theme="dark"] .chart-notes {
+  background: var(--dark-card);
+  color: var(--dark-text);
+  border-color: var(--dark-border);
+}
+html[data-theme="dark"] .nav-tabs-custom > .nav-tabs { border-bottom-color: var(--dark-border); }
+html[data-theme="dark"] .nav-tabs-custom > .nav-tabs > li > a { color: var(--dark-muted); }
+html[data-theme="dark"] .nav-tabs-custom > .nav-tabs > li.active > a,
+html[data-theme="dark"] .nav-tabs-custom > .nav-tabs > li.active:hover > a {
+  background-color: var(--dark-card);
+  color: var(--dark-text);
+  border-color: var(--dark-border);
+}
+html[data-theme="dark"] .nav-tabs-custom > .nav-tabs > li > a:hover { color: var(--dark-text); }
+html[data-theme="dark"] pre,
+html[data-theme="dark"] code { background: var(--dark-raised); color: var(--dark-text); border-color: var(--dark-border); }
+html[data-theme="dark"] .pipeline-log h4 { border-top-color: var(--dark-border); }
+html[data-theme="dark"] .pipeline-log pre,
+html[data-theme="dark"] .pipeline-log code { background: transparent; }
+
+/* status page: the grid of sites and its pop-ups */
+html[data-theme="dark"] .table > thead > tr > th,
+html[data-theme="dark"] .table > tbody > tr > td { border-color: var(--dark-border); }
+html[data-theme="dark"] .grid-pop,
+html[data-theme="dark"] .info-pop {
+  background: var(--dark-raised);
+  color: var(--dark-text);
+  border-color: var(--dark-border);
+  box-shadow: 0 2px 10px rgba(0,0,0,.6);
+}
+html[data-theme="dark"] .grid-table td[style*="#ccc"] { color: #555 !important; }
+
+/* map: controls, pop-ups and legend */
+html[data-theme="dark"] .leaflet-container { background: #262626; }
+html[data-theme="dark"] .leaflet-control-layers,
+html[data-theme="dark"] .leaflet-bar a,
+html[data-theme="dark"] .leaflet-popup-content-wrapper,
+html[data-theme="dark"] .leaflet-popup-tip,
+html[data-theme="dark"] .info.legend {
+  background: var(--dark-raised);
+  color: var(--dark-text);
+}
+html[data-theme="dark"] .leaflet-control { border-color: rgba(255,255,255,0.15) !important; }
+html[data-theme="dark"] .leaflet-bar a { border-bottom-color: var(--dark-border); }
+html[data-theme="dark"] .leaflet-control-zoom-in,
+html[data-theme="dark"] .leaflet-control-zoom-out { color: var(--dark-text) !important; }
+html[data-theme="dark"] .leaflet-control-attribution { background: rgba(34,37,39,0.8) !important; color: var(--dark-muted); }
+html[data-theme="dark"] .leaflet-popup-close-button { color: var(--dark-muted) !important; }
+html[data-theme="dark"] .leaflet-popup-diagnostic-button { color: #666 !important; }
+html[data-theme="dark"] .leaflet-tooltip { color: #111; }
+/* the SCIF and LAIR logos have dark text: set them on a light backing */
+html[data-theme="dark"] .map-logos {
+  background: rgba(255,255,255,0.85);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+/* flexdashboard paints these white with more specific rules of its own */
+html[data-theme="dark"] .tab-content > .tab-pane,
+html[data-theme="dark"] .bootstrap-table thead,
+html[data-theme="dark"] .chart-stage thead {
+  background: var(--dark-card) !important;
+}
+/* plotly's selected button (the diel's species): a fixed near-white fill */
+html[data-theme="dark"] .updatemenu-item-rect[style*="rgb(244, 250, 255)"] {
+  fill: #4a4f53 !important;
+}
+/* no box left around the button after a click (keyboard focus still shows) */
+.theme-toggle:focus:not(:focus-visible) { outline: none; background: transparent !important; }

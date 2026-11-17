@@ -228,7 +228,7 @@ map
 
 </div>
 
-<div class="mobileHide" style="position:fixed; left: 5px; bottom: 10px; text-align: center;">
+<div class="mobileHide map-logos" style="position:fixed; left: 5px; bottom: 10px; text-align: center;">
 <a href="http://sustainability.utah.edu">
 <img src="https://air.utah.edu/img/SCIF_logo.png" style="width: 130px;">
 </a>

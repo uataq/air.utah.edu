@@ -78,15 +78,27 @@ a:active {
   border-top-color: #c3252c;
 }
 
-/* ensure process log dump is scrollable */
-#log > div.chart-stage.chart-stage-flex,
-#log > div.chart-stage.chart-stage-flex > div > pre {
+/* process log: scrollable, one heading per site, instruments in bold */
+#log > div.chart-stage.chart-stage-flex {
+  overflow: auto;
+}
+.pipeline-log h4 {
+  font-weight: bold;
+  margin: 18px 0 4px;
+  padding-top: 8px;
+  border-top: 1px solid #ddd;
+}
+.pipeline-log h4:first-child {
+  margin-top: 0;
+  border-top: none;
+}
+.pipeline-log pre {
   background: transparent;
   border: none;
-  overflow: scroll;
-}
-#log > div.chart-stage.chart-stage-flex > div > pre > code {
-  display:block;
+  margin: 0;
+  padding: 0 0 0 12px;
+  white-space: pre;
+  overflow-x: auto;
 }
 
 .leaflet-control {
